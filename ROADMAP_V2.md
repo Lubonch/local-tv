@@ -110,14 +110,8 @@
   - Documentar comportamiento esperado
   - Verificar que no haya modo secuencial accidental
   
-- [ ] **5.2**: Agregar indicador visual (no opcional)
-  - Pequeño icono/texto indicando "Modo Aleatorio"
-  - Tooltip explicativo al hacer hover
-  - Posicionar sin interferir con otros controles
 - [ ] **5.3**: limpiar archivos innecesarios y comentarios
-  - Pequeño icono/texto indicando "Modo Aleatorio"
-  - Tooltip explicativo al hacer hover
-  - Posicionar sin interferir con otros controles
+
 
 ---
 
