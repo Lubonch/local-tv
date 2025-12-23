@@ -95,7 +95,7 @@ Crear una aplicación Angular que reproduzca videos aleatorios de una carpeta se
   - Flecha izquierda: Video anterior
   - F: Pantalla completa
   - Escape: Salir de pantalla completa
-- [ ] Botón sutil para "Cambiar carpeta" (solo visible al mover mouse)
+- [x] Botón sutil para "Cambiar carpeta" (solo visible al mover mouse)
 
 ---
 

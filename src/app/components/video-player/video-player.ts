@@ -19,6 +19,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   error: string | null = null;
   errorCount: number = 0;
   private maxConsecutiveErrors: number = 3;
+  showControls: boolean = false;
+  private hideControlsTimeout: any;
 
   constructor(
     private playlistService: PlaylistService,
@@ -49,11 +51,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       if (this.currentVideo && this.currentVideo.url) {
         URL.revokeObjectURL(this.currentVideo.url);
       }
-      
+
       this.currentVideo = nextVideo;
       this.error = null;
       this.isLoading = true;
-      
+
       // Precargar el siguiente video
       this.preloadNextVideo();
     } else {
@@ -90,14 +92,14 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   onVideoError(event: Event): void {
     console.error('Error cargando video:', this.currentVideo?.name);
     this.errorCount++;
-    
+
     if (this.errorCount >= this.maxConsecutiveErrors) {
       this.error = `Demasiados errores consecutivos (${this.errorCount}). Verifica que los archivos de video sean válidos.`;
       return;
     }
-    
+
     this.error = `Error cargando "${this.currentVideo?.name}". Saltando al siguiente...`;
-    
+
     // Intentar cargar el siguiente video después de un breve delay
     setTimeout(() => {
       this.loadNextVideo();
@@ -111,10 +113,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.isLoading = false;
     this.errorCount = 0; // Resetear contador de errores en carga exitosa
     console.log('Video cargado y listo:', this.currentVideo?.name);
-    
+
     // Intentar entrar en pantalla completa
     this.enterFullscreen();
-    
+
     // Reproducir automáticamente
     const video = this.videoElement?.nativeElement;
     if (video) {
@@ -131,7 +133,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     // Obtener referencia al siguiente video sin avanzar la playlist
     const playlist = this.playlistService.getPlaylist();
     const currentIndex = this.playlistService.getCurrentIndex();
-    
+
     if (playlist.length > 1 && currentIndex < playlist.length - 1) {
       this.nextVideo = playlist[currentIndex + 1];
       console.log('Siguiente video precargado:', this.nextVideo.name);
@@ -190,4 +192,47 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
         break;
     }
   }
+
+  /**
+   * Muestra los controles al mover el mouse
+   */
+  onMouseMove(): void {
+    this.showControls = true;
+    
+    // Limpiar timeout anterior
+    if (this.hideControlsTimeout) {
+      clearTimeout(this.hideControlsTimeout);
+    }
+    
+    // Ocultar controles después de 3 segundos sin movimiento
+    this.hideControlsTimeout = setTimeout(() => {
+      this.showControls = false;
+    }, 3000);
+  }
+
+  /**
+   * Muestra los controles al entrar con el mouse
+   */
+  onMouseEnter(): void {
+    this.showControls = true;
+  }
+
+  /**
+   * Oculta los controles al salir con el mouse
+   */
+  onMouseLeave(): void {
+    this.showControls = false;
+    if (this.hideControlsTimeout) {
+      clearTimeout(this.hideControlsTimeout);
+    }
+  }
+
+  /**
+   * Cambia a otra carpeta
+   */
+  onChangeFolder(): void {
+    // Emitir evento para volver al selector de carpetas
+    window.location.reload();
+  }
 }
+

@@ -1,6 +1,11 @@
-<div class="video-container" (keydown)="onKeyPress($event)" tabindex="0">
+<div class="video-container" 
+     (keydown)="onKeyPress($event)" 
+     (mousemove)="onMouseMove()"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()"
+     tabindex="0">
   @if (currentVideo) {
-    <video 
+    <video
       #videoElement
       [src]="currentVideo.url"
       (ended)="onVideoEnded()"
@@ -20,6 +25,15 @@
   @if (isLoading) {
     <div class="loading-message">
       Cargando video...
+    </div>
+  }
+
+  <!-- Botón para cambiar carpeta (visible al mover mouse) -->
+  @if (showControls) {
+    <div class="controls-overlay">
+      <button class="change-folder-btn" (click)="onChangeFolder()">
+        📁 Cambiar Carpeta
+      </button>
     </div>
   }
 </div>
