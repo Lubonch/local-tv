@@ -60,6 +60,9 @@ export class OverlayComponent implements OnInit, OnDestroy {
 
   get temperatureText(): string {
     if (this.weatherData) {
+      if (this.weatherData.temperature === 999) {
+        return '🔥 999°C';
+      }
       return `${this.weatherData.temperature}°C`;
     }
     return '--°C';
@@ -67,6 +70,9 @@ export class OverlayComponent implements OnInit, OnDestroy {
 
   get feelsLikeText(): string {
     if (this.weatherData) {
+      if (this.weatherData.feelsLike === 999) {
+        return '🔥 ST: 999°C';
+      }
       return `ST: ${this.weatherData.feelsLike}°C`;
     }
     return 'ST: --°C';
