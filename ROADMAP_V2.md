@@ -108,7 +108,6 @@
 - [ ] **5.1**: Verificar funcionalidad actual
   - Confirmar que solo funciona modo aleatorio(aleatorio real, no con un seed predecible)
   - Documentar comportamiento esperado
-  - Verificar que no haya modo secuencial accidental
   
 - [ ] **5.3**: limpiar archivos innecesarios y comentarios
 
