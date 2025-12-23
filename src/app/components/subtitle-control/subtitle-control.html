@@ -1,0 +1,27 @@
+<div class="subtitle-control"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
+  <button class="subtitle-icon" 
+          (click)="toggleMenu()"
+          [class.active]="currentSubtitleIndex >= 0"
+          [disabled]="!hasSubtitles">
+    CC
+  </button>
+  
+  @if (showMenu && hasSubtitles) {
+    <div class="subtitle-menu">
+      <div class="subtitle-option"
+           [class.selected]="currentSubtitleIndex === -1"
+           (click)="selectSubtitle(-1)">
+        Sin subtítulos
+      </div>
+      @for (subtitle of subtitles; track subtitle.index) {
+        <div class="subtitle-option"
+             [class.selected]="currentSubtitleIndex === subtitle.index"
+             (click)="selectSubtitle(subtitle.index)">
+          {{ subtitle.label }}
+        </div>
+      }
+    </div>
+  }
+</div>

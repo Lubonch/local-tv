@@ -7,10 +7,11 @@ import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
+import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -35,6 +36,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   isMuted: boolean = false;
   private readonly VOLUME_STORAGE_KEY = 'video-volume';
   private readonly MUTE_STORAGE_KEY = 'video-muted';
+
+  subtitles: SubtitleTrack[] = [];
+  currentSubtitleIndex: number = -1;
+  private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
   constructor(
     private playlistService: PlaylistService,
@@ -119,6 +124,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
+      this.detectSubtitles();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -220,6 +226,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       case 'M':
         event.preventDefault();
         this.onMuteToggle();
+        break;
+      case 'c':
+      case 'C':
+        event.preventDefault();
+        this.toggleSubtitles();
         break;
       case 'j':
       case 'J':
@@ -339,6 +350,61 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   private adjustVolume(delta: number): void {
     const newVolume = Math.max(0, Math.min(100, this.volume + delta));
     this.onVolumeChange(newVolume);
+  }
+
+  private detectSubtitles(): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    this.subtitles = [];
+    const textTracks = video.textTracks;
+
+    for (let i = 0; i < textTracks.length; i++) {
+      const track = textTracks[i];
+      if (track.kind === 'subtitles' || track.kind === 'captions') {
+        this.subtitles.push({
+          index: i,
+          label: track.label || `Pista ${i + 1}`,
+          language: track.language,
+          kind: track.kind as 'subtitles' | 'captions'
+        });
+      }
+    }
+
+    this.loadSubtitlePreference();
+  }
+
+  onSubtitleChange(index: number): void {
+    this.currentSubtitleIndex = index;
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    const textTracks = video.textTracks;
+    for (let i = 0; i < textTracks.length; i++) {
+      textTracks[i].mode = i === index ? 'showing' : 'hidden';
+    }
+
+    localStorage.setItem(this.SUBTITLE_STORAGE_KEY, index.toString());
+  }
+
+  private toggleSubtitles(): void {
+    if (this.subtitles.length === 0) return;
+
+    if (this.currentSubtitleIndex === -1 && this.subtitles.length > 0) {
+      this.onSubtitleChange(0);
+    } else {
+      this.onSubtitleChange(-1);
+    }
+  }
+
+  private loadSubtitlePreference(): void {
+    const saved = localStorage.getItem(this.SUBTITLE_STORAGE_KEY);
+    if (saved) {
+      const index = parseInt(saved);
+      if (index >= -1 && index < this.subtitles.length) {
+        this.onSubtitleChange(index);
+      }
+    }
   }
 }
 
