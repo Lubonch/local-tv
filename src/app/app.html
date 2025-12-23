@@ -1,10 +1,8 @@
 <div class="app-container">
-  <!-- Selector de carpeta (se muestra al inicio) -->
   @if (showFolderSelector) {
     <app-folder-selector (folderSelected)="onFolderSelected()"></app-folder-selector>
   }
 
-  <!-- Reproductor de video y overlay (se muestra después de seleccionar carpeta) -->
   @if (!showFolderSelector) {
     <app-video-player></app-video-player>
   }

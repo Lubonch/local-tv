@@ -20,17 +20,13 @@ export class App implements OnInit {
   constructor(private playlistService: PlaylistService) {}
 
   ngOnInit(): void {
-    // Verificar si ya hay una playlist cargada
     this.playlistService.playlistLoaded$.subscribe(loaded => {
       if (loaded) {
-        // Ocultar selector y mostrar video player inmediatamente
         this.showFolderSelector = false;
       }
     });
   }
 
   onFolderSelected(): void {
-    // El folder selector ya maneja la lógica,
-    // aquí solo esperamos a que la playlist esté cargada
   }
 }

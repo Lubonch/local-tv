@@ -102,10 +102,9 @@
   }
 }
 
-/* Estilos para pantalla completa */
 :host-context(.video-container:fullscreen) .overlay-container,
 :host-context(.video-container:-webkit-full-screen) .overlay-container,
 :host-context(.video-container:-moz-full-screen) .overlay-container,
 :host-context(.video-container:-ms-fullscreen) .overlay-container {
-  z-index: 2147483647; /* Máximo z-index para asegurar visibilidad */
+  z-index: 2147483647;
 }
