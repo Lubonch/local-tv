@@ -14,7 +14,7 @@
         <div class="action-box">
           <p class="instruction">Selecciona una carpeta con videos para comenzar</p>
           <button class="select-button" (click)="onSelectFolder()">
-            📁 Seleccionar Carpeta
+            Seleccionar Carpeta
           </button>
         </div>
       }
@@ -44,7 +44,7 @@
 
       @if (videoCount > 0 && !isLoading) {
         <div class="success-box">
-          <p class="success-message">✓ Se cargaron {{ videoCount }} videos</p>
+          <p class="success-message">Se cargaron {{ videoCount }} videos</p>
           <p class="small-text">Iniciando reproducción...</p>
         </div>
       }
