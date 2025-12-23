@@ -1,4 +1,4 @@
-# Local TV 📺
+# Local TV
 
 Tu canal personal de videos con overlay de hora y clima, como los canales de TV.
 
@@ -10,15 +10,15 @@ Una app web que reproduce tus videos de forma aleatoria y continua, mostrando la
 
 ## Características
 
-- 🎲 **Reproducción aleatoria** - Nunca sabes qué sigue
-- 🕐 **Reloj en tiempo real** - Siempre sabes la hora
-- 🌡️ **Temperatura actual** - Basada en tu ubicación
-- 💾 **Recuerda tu carpeta** - No tienes que seleccionarla cada vez
-- ⌨️ **Atajos de teclado** - Control total sin mouse
-- 🎬 **Barra de progreso** - Navega por el video actual
-- 🔊 **Control de volumen** - Ajusta el sonido a tu gusto
-- 📝 **Subtítulos** - Soporte para pistas embebidas
-- 🎨 **Minimalista** - Interfaz limpia y oscura
+- Reproducción aleatoria - Nunca sabes qué sigue
+- Reloj en tiempo real - Siempre sabes la hora
+- Temperatura actual - Basada en tu ubicación
+- Recuerda tu carpeta - No tienes que seleccionarla cada vez
+- Atajos de teclado - Control total sin mouse
+- Barra de progreso - Navega por el video actual
+- Control de volumen - Ajusta el sonido a tu gusto
+- Subtítulos - Soporte para pistas embebidas
+- Diseño minimalista - Interfaz limpia y oscura
 
 ---
 
@@ -87,10 +87,10 @@ GitHub Actions se encarga del resto. Tu app estará en: `https://tu-usuario.gith
 
 ## Navegadores Compatibles
 
-✅ Chrome (recomendado)  
-✅ Edge  
-✅ Brave  
-⚠️ Firefox (limitado)
+Chrome (recomendado)  
+Edge  
+Brave  
+Firefox (soporte limitado)
 
 ---
 
