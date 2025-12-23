@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-weather-icon',
@@ -18,8 +19,10 @@ export class WeatherIconComponent {
   @Input() weatherCode: number = 0;
   @Input() size: number = 48;
 
-  get iconSvg(): string {
-    return this.getWeatherIconSvg(this.weatherCode);
+  constructor(private sanitizer: DomSanitizer) {}
+
+  get iconSvg(): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.getWeatherIconSvg(this.weatherCode));
   }
 
   private getWeatherIconSvg(code: number): string {
