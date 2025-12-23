@@ -3,34 +3,44 @@
     <h1 class="title">Local TV</h1>
     <p class="subtitle">Tu canal personal de videos</p>
 
-    <div *ngIf="!isSupported" class="error-box">
-      <p>{{ error }}</p>
-    </div>
-
-    <div *ngIf="isSupported">
-      <div *ngIf="!isLoading && videoCount === 0" class="action-box">
-        <p class="instruction">Selecciona una carpeta con videos para comenzar</p>
-        <button class="select-button" (click)="onSelectFolder()">
-          📁 Seleccionar Carpeta
-        </button>
-      </div>
-
-      <div *ngIf="isLoading" class="loading-box">
-        <div class="spinner"></div>
-        <p>Cargando videos...</p>
-      </div>
-
-      <div *ngIf="error && !isLoading" class="error-box">
+    @if (!isSupported) {
+      <div class="error-box">
         <p>{{ error }}</p>
-        <button class="retry-button" (click)="onSelectFolder()">
-          Intentar de nuevo
-        </button>
       </div>
+    }
 
-      <div *ngIf="videoCount > 0 && !isLoading" class="success-box">
-        <p class="success-message">✓ Se cargaron {{ videoCount }} videos</p>
-        <p class="small-text">Iniciando reproducción...</p>
-      </div>
-    </div>
+    @if (isSupported) {
+      @if (!isLoading && videoCount === 0) {
+        <div class="action-box">
+          <p class="instruction">Selecciona una carpeta con videos para comenzar</p>
+          <button class="select-button" (click)="onSelectFolder()">
+            📁 Seleccionar Carpeta
+          </button>
+        </div>
+      }
+
+      @if (isLoading) {
+        <div class="loading-box">
+          <div class="spinner"></div>
+          <p>Cargando videos...</p>
+        </div>
+      }
+
+      @if (error && !isLoading) {
+        <div class="error-box">
+          <p>{{ error }}</p>
+          <button class="retry-button" (click)="onSelectFolder()">
+            Intentar de nuevo
+          </button>
+        </div>
+      }
+
+      @if (videoCount > 0 && !isLoading) {
+        <div class="success-box">
+          <p class="success-message">✓ Se cargaron {{ videoCount }} videos</p>
+          <p class="small-text">Iniciando reproducción...</p>
+        </div>
+      }
+    }
   </div>
 </div>

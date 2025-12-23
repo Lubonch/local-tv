@@ -1,20 +1,25 @@
 <div class="video-container" (keydown)="onKeyPress($event)" tabindex="0">
-  <video 
-    #videoElement
-    *ngIf="currentVideo"
-    [src]="currentVideo.url"
-    (ended)="onVideoEnded()"
-    (error)="onVideoError($event)"
-    (loadeddata)="onVideoLoaded()"
-    autoplay
-    class="video-player">
-  </video>
+  @if (currentVideo) {
+    <video 
+      #videoElement
+      [src]="currentVideo.url"
+      (ended)="onVideoEnded()"
+      (error)="onVideoError($event)"
+      (loadeddata)="onVideoLoaded()"
+      autoplay
+      class="video-player">
+    </video>
+  }
 
-  <div class="error-message" *ngIf="error">
-    {{ error }}
-  </div>
+  @if (error) {
+    <div class="error-message">
+      {{ error }}
+    </div>
+  }
 
-  <div class="loading-message" *ngIf="isLoading">
-    Cargando video...
-  </div>
+  @if (isLoading) {
+    <div class="loading-message">
+      Cargando video...
+    </div>
+  }
 </div>
