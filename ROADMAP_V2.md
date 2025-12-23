@@ -69,31 +69,31 @@
 
 ---
 
-## Fase 4: Manejo de Subtítulos
+## Fase 4: Manejo de Subtítulos ✅ COMPLETADA
 
 ### Tareas:
-- [ ] **4.1**: Detectar archivos de subtítulos
+- [x] **4.1**: Detectar archivos de subtítulos
   - Buscar archivos .srt o .vtt con mismo nombre que video
   - Parsear formato SRT/VTT
   - Listar subtítulos disponibles
   - Detectar subtítulos embebidos en el archivo de video (pistas de texto)
   
-- [ ] **4.2**: Crear componente SubtitleControl
+- [x] **4.2**: Crear componente SubtitleControl
   - Botón CC en controles
   - Lista desplegable con idiomas disponibles
   - Opción "Sin subtítulos"
   
-- [ ] **4.3**: Renderizar subtítulos
+- [x] **4.3**: Renderizar subtítulos
   - Usar elemento <track> nativo de HTML5
   - O implementar renderizado custom con overlay
   - Sincronizar con tiempo del video
   
-- [ ] **4.4**: Persistencia y atajos
+- [x] **4.4**: Persistencia y atajos
   - Recordar preferencia de subtítulos en localStorage
   - Atajo C para toggle subtítulos
   - Permitir cambio durante reproducción
 
-- [ ] **4.5**: Control de pistas de audio
+- [x] **4.5**: Control de pistas de audio
   - Detectar pistas de audio múltiples en el video
   - Crear selector de idioma de audio
   - Mostrar nombre/idioma de cada pista disponible
@@ -117,6 +117,15 @@
 
 ---
 
+## Fase 6: Limpiar comentarios y archivos no necesarioa
+
+### Tareas:
+- [ ] **5.1**: VLimpiar comentarios y archivos no necesarioa
+  - Limpiar comentarios y archivos no necesarioa
+
+
+---
+
 ## Notas de Implementación
 
 - Mantener consistencia visual con el tema oscuro actual
@@ -133,5 +142,5 @@
 - ✅ Fase 1: COMPLETADA (23/12/2024)
 - ✅ Fase 2: COMPLETADA (23/12/2024)
 - ✅ Fase 3: COMPLETADA (23/12/2024)
-- ⏳ Fase 4: Pendiente
+- ✅ Fase 4: COMPLETADA (23/12/2024)
 - ⏳ Fase 5: Pendiente
