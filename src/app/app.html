@@ -1,0 +1,13 @@
+<div class="app-container">
+  <!-- Selector de carpeta (se muestra al inicio) -->
+  <app-folder-selector 
+    *ngIf="showFolderSelector"
+    (folderSelected)="onFolderSelected()">
+  </app-folder-selector>
+
+  <!-- Reproductor de video y overlay (se muestra después de seleccionar carpeta) -->
+  <ng-container *ngIf="!showFolderSelector">
+    <app-video-player></app-video-player>
+    <app-overlay></app-overlay>
+  </ng-container>
+</div>
