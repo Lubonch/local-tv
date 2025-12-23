@@ -102,37 +102,37 @@ Crear una aplicación Angular que reproduzca videos aleatorios de una carpeta se
 ## Fase 6: Pulido y Optimización ✨
 
 ### 6.1 Manejo de Errores
-- [ ] Carpeta vacía o sin videos
-- [ ] Videos corruptos o no soportados
-- [ ] Error de geolocalización
-- [ ] Error de API del clima
-- [ ] Sin conexión a internet
+- [x] Carpeta vacía o sin videos
+- [x] Videos corruptos o no soportados (contador de errores consecutivos)
+- [x] Error de geolocalización (mensaje en overlay)
+- [x] Error de API del clima (mensaje en overlay)
+- [x] Sin conexión a internet (manejo en WeatherService)
 
 ### 6.2 Performance
-- [ ] Precarga del siguiente video (opcional)
-- [ ] Liberar memoria de videos anteriores
-- [ ] Optimizar búsqueda recursiva de archivos
+- [x] Precarga del siguiente video (implementado)
+- [x] Liberar memoria de videos anteriores (URL.revokeObjectURL)
+- [x] Optimizar búsqueda recursiva de archivos (ya optimizado)
 
 ### 6.3 Estilos Finales
-- [ ] Fuentes legibles para el overlay
-- [ ] Sombras/bordes para mejor visibilidad del texto
-- [ ] Animaciones sutiles (fade in/out)
-- [ ] Modo pantalla completa automático al iniciar reproducción
+- [x] Fuentes legibles para el overlay (Segoe UI)
+- [x] Sombras/bordes para mejor visibilidad del texto (múltiples sombras)
+- [x] Animaciones sutiles (fadeIn, slideUp)
+- [x] Modo pantalla completa automático al iniciar reproducción
 
 ---
 
 ## Fase 7: Deployment y Documentación 🚀
 
 ### 7.1 Build de Producción
-- [ ] Configurar environment.prod.ts
-- [ ] Build optimizado (`ng build --configuration production`)
-- [ ] Servir archivos estáticos
+- [x] Configurar environment.prod.ts (configurado con placeholder para API key)
+- [x] Build optimizado (`ng build --configuration production`)
+- [x] Servir archivos estáticos (instrucciones en README)
 
 ### 7.2 Documentación
-- [ ] README.md con instrucciones de uso
-- [ ] Cómo obtener API key de OpenWeatherMap
-- [ ] Requisitos del navegador
-- [ ] Troubleshooting común
+- [x] README.md con instrucciones de uso
+- [x] Cómo obtener API key de OpenWeatherMap
+- [x] Requisitos del navegador
+- [x] Troubleshooting común (extendido con múltiples escenarios)
 
 ---
 

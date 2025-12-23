@@ -149,4 +149,18 @@ export class PlaylistService {
   hasVideos(): boolean {
     return this.videos.length > 0;
   }
+
+  /**
+   * Obtiene la playlist completa
+   */
+  getPlaylist(): VideoFile[] {
+    return this.videos;
+  }
+
+  /**
+   * Obtiene el índice actual
+   */
+  getCurrentIndex(): number {
+    return this.currentIndex;
+  }
 }

@@ -14,8 +14,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
 
   currentVideo: VideoFile | null = null;
+  nextVideo: VideoFile | null = null;
   isLoading: boolean = false;
   error: string | null = null;
+  errorCount: number = 0;
+  private maxConsecutiveErrors: number = 3;
 
   constructor(
     private playlistService: PlaylistService,
@@ -42,10 +45,23 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   loadNextVideo(): void {
     const nextVideo = this.playlistService.getNextVideo();
     if (nextVideo) {
+      // Limpiar URL del video anterior para liberar memoria
+      if (this.currentVideo && this.currentVideo.url) {
+        URL.revokeObjectURL(this.currentVideo.url);
+      }
+      
       this.currentVideo = nextVideo;
       this.error = null;
+      this.isLoading = true;
+      
+      // Precargar el siguiente video
+      this.preloadNextVideo();
     } else {
-      this.error = 'No hay videos disponibles';
+      if (this.errorCount >= this.maxConsecutiveErrors) {
+        this.error = 'Demasiados errores consecutivos. Verifica que los videos sean válidos.';
+      } else {
+        this.error = 'No hay videos disponibles';
+      }
     }
   }
 
@@ -72,13 +88,20 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
    * Maneja errores de carga del video
    */
   onVideoError(event: Event): void {
-    console.error('Error cargando video:', event);
-    this.error = 'Error al cargar el video. Saltando al siguiente...';
+    console.error('Error cargando video:', this.currentVideo?.name);
+    this.errorCount++;
+    
+    if (this.errorCount >= this.maxConsecutiveErrors) {
+      this.error = `Demasiados errores consecutivos (${this.errorCount}). Verifica que los archivos de video sean válidos.`;
+      return;
+    }
+    
+    this.error = `Error cargando "${this.currentVideo?.name}". Saltando al siguiente...`;
     
     // Intentar cargar el siguiente video después de un breve delay
     setTimeout(() => {
       this.loadNextVideo();
-    }, 2000);
+    }, 1500);
   }
 
   /**
@@ -86,7 +109,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
    */
   onVideoLoaded(): void {
     this.isLoading = false;
-    console.log('Video cargado y listo');
+    this.errorCount = 0; // Resetear contador de errores en carga exitosa
+    console.log('Video cargado y listo:', this.currentVideo?.name);
     
     // Intentar entrar en pantalla completa
     this.enterFullscreen();
@@ -97,6 +121,20 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       video.play().catch(error => {
         console.error('Error al reproducir video:', error);
       });
+    }
+  }
+
+  /**
+   * Precarga el siguiente video en la playlist
+   */
+  private preloadNextVideo(): void {
+    // Obtener referencia al siguiente video sin avanzar la playlist
+    const playlist = this.playlistService.getPlaylist();
+    const currentIndex = this.playlistService.getCurrentIndex();
+    
+    if (playlist.length > 1 && currentIndex < playlist.length - 1) {
+      this.nextVideo = playlist[currentIndex + 1];
+      console.log('Siguiente video precargado:', this.nextVideo.name);
     }
   }
 

@@ -149,25 +149,57 @@ npx http-server dist/local-tv/browser -p 8080
 - **Verifica** que la carpeta seleccionada contenga videos
 - **Comprueba** los formatos de video (preferiblemente MP4)
 - **Mira** la consola del navegador para errores
+- **Extensiones válidas**: .mp4, .mkv, .webm, .avi, .mov, .m4v, .wmv, .flv, .ogv, .3gp
+- **Nota**: La aplicación escanea subcarpetas recursivamente
 
 ### No se muestra la temperatura
 
-- **Verifica** que hayas configurado la API key
-- **Comprueba** que permitiste la geolocalización
+- **Verifica** que hayas configurado la API key en los archivos de environment
+- **Comprueba** que permitiste la geolocalización cuando el navegador lo solicite
 - **Asegúrate** de tener conexión a internet
 - **Revisa** la consola para errores de API
+- **API Key**: Obtén una gratuita en https://openweathermap.org/api
+- **Nota**: La temperatura se actualiza cada 30 minutos
 
 ### El navegador no permite seleccionar carpetas
 
 - **Usa Chrome, Edge o Brave** (recomendado)
 - **Actualiza** tu navegador a la última versión
 - Firefox tiene soporte limitado para File System Access API
+- **HTTPS requerido** en producción (localhost funciona con HTTP)
 
 ### Los videos no se reproducen
 
 - **Verifica** el formato del video
 - **Asegúrate** de que el navegador soporta el códec
 - **Intenta** con archivos MP4 (H.264)
+- **Videos corruptos**: La app los saltará automáticamente después de 3 errores consecutivos
+- **Códecs**: H.264/H.265 para MP4, VP8/VP9 para WebM funcionan mejor
+
+### Error "Demasiados errores consecutivos"
+
+- **Causa**: 3 o más videos consecutivos fallaron al cargar
+- **Solución**: Verifica que tus archivos de video no estén corruptos
+- **Recomendación**: Convierte videos problemáticos a MP4 con H.264
+
+### La carpeta seleccionada no se recuerda
+
+- **IndexedDB**: Verifica que tu navegador permita IndexedDB
+- **Modo incógnito**: No se guardan las preferencias en modo privado
+- **Permisos**: La app necesita re-verificar permisos al recargar
+
+### Geolocalización bloqueada
+
+- **Chrome**: Configuración > Privacidad > Configuración de sitios > Ubicación
+- **Edge**: Configuración > Cookies y permisos del sitio > Ubicación
+- **Alternativa**: La app funciona sin temperatura, solo muestra hora
+
+### Performance lento con muchos videos
+
+- **Optimización**: La app escanea recursivamente al inicio
+- **Recomendación**: Para carpetas con +1000 videos, el escaneo puede tardar
+- **Memoria**: Los videos se liberan de memoria después de reproducirse
+- **Precarga**: El siguiente video se precarga automáticamente
 
 ## 📝 Roadmap
 
