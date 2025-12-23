@@ -1,0 +1,27 @@
+<div class="progress-container"
+     (mouseup)="onMouseUp()"
+     (mousemove)="onMouseMove($event)"
+     (mouseleave)="onMouseLeave()">
+
+  <div class="time-labels">
+    <span class="current-time">{{ currentTimeFormatted }}</span>
+    <span class="duration">{{ durationFormatted }}</span>
+  </div>
+
+  <div #progressBar
+       class="progress-bar"
+       (click)="onProgressBarClick($event)"
+       (mousedown)="onProgressBarMouseDown($event)"
+       (mouseenter)="onMouseEnter()">
+
+    <div class="progress-filled" [style.width.%]="progressPercentage"></div>
+
+    <div class="progress-handle" [style.left.%]="progressPercentage"></div>
+
+    @if (showPreview && !isDragging) {
+      <div class="progress-preview" [style.left.%]="previewPosition">
+        <span class="preview-time">{{ previewTimeFormatted }}</span>
+      </div>
+    }
+  </div>
+</div>

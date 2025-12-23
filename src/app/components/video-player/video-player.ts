@@ -4,10 +4,12 @@ import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
 import { CommonModule } from '@angular/common';
 import { OverlayComponent } from '../overlay/overlay';
+import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
+import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -24,6 +26,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   showControls: boolean = false;
   private hideControlsTimeout: any;
 
+  currentTime: number = 0;
+  duration: number = 0;
+  private updateInterval: any;
+
   constructor(
     private playlistService: PlaylistService,
     private storageService: StorageService
@@ -38,6 +44,12 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+    if (this.hideControlsTimeout) {
+      clearTimeout(this.hideControlsTimeout);
+    }
   }
 
   loadNextVideo(): void {
@@ -98,9 +110,34 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
 
     const video = this.videoElement?.nativeElement;
     if (video) {
+      this.duration = video.duration;
+      this.startTimeUpdate();
+
       video.play().catch(error => {
         console.error('Error al reproducir video:', error);
       });
+    }
+  }
+
+  private startTimeUpdate(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+
+    this.updateInterval = setInterval(() => {
+      const video = this.videoElement?.nativeElement;
+      if (video && !isNaN(video.currentTime)) {
+        this.currentTime = video.currentTime;
+        this.duration = video.duration || 0;
+      }
+    }, 100);
+  }
+
+  onSeek(time: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && isFinite(time)) {
+      video.currentTime = time;
+      this.currentTime = time;
     }
   }
 
@@ -137,24 +174,77 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   onKeyPress(event: KeyboardEvent): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
     switch(event.key) {
       case ' ':
         event.preventDefault();
         this.togglePlayPause();
         break;
       case 'ArrowRight':
-        event.preventDefault();
-        this.loadNextVideo();
+        if (event.shiftKey) {
+          event.preventDefault();
+          this.loadNextVideo();
+        } else {
+          event.preventDefault();
+          this.seek(5);
+        }
         break;
       case 'ArrowLeft':
+        if (event.shiftKey) {
+          event.preventDefault();
+          this.loadPreviousVideo();
+        } else {
+          event.preventDefault();
+          this.seek(-5);
+        }
+        break;
+      case 'j':
+      case 'J':
         event.preventDefault();
-        this.loadPreviousVideo();
+        this.seek(-10);
+        break;
+      case 'l':
+      case 'L':
+        event.preventDefault();
+        this.seek(10);
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        event.preventDefault();
+        const percentage = parseInt(event.key) * 10;
+        this.seekToPercentage(percentage);
         break;
       case 'f':
       case 'F':
         event.preventDefault();
         this.enterFullscreen();
         break;
+    }
+  }
+
+  private seek(seconds: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && this.duration > 0) {
+      const newTime = Math.max(0, Math.min(video.currentTime + seconds, this.duration));
+      video.currentTime = newTime;
+    }
+  }
+
+  private seekToPercentage(percentage: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && this.duration > 0) {
+      const newTime = (this.duration * percentage) / 100;
+      video.currentTime = newTime;
     }
   }
 

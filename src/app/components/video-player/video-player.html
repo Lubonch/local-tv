@@ -36,5 +36,20 @@
     </div>
   }
 
+  @if (showControls && currentVideo) {
+    <app-video-info-overlay
+      [videoName]="currentVideo.name"
+      [showInfo]="showControls">
+    </app-video-info-overlay>
+  }
+
+  @if (showControls && currentVideo) {
+    <app-video-progress-bar
+      [currentTime]="currentTime"
+      [duration]="duration"
+      (seek)="onSeek($event)">
+    </app-video-progress-bar>
+  }
+
   <app-overlay></app-overlay>
 </div>
