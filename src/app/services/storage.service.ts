@@ -12,13 +12,8 @@ export class StorageService {
 
   constructor() { }
 
-  /**
-   * Guarda el handle del directorio en IndexedDB
-   * (localStorage no puede almacenar objetos complejos como FileSystemDirectoryHandle)
-   */
   async saveDirectoryHandle(handle: FileSystemDirectoryHandle): Promise<void> {
     try {
-      // Usar IndexedDB para guardar el handle
       const db = await this.openDatabase();
       const transaction = db.transaction(['handles'], 'readwrite');
       const store = transaction.objectStore('handles');
@@ -31,9 +26,6 @@ export class StorageService {
     }
   }
 
-  /**
-   * Recupera el handle del directorio desde IndexedDB
-   */
   async getDirectoryHandle(): Promise<FileSystemDirectoryHandle | null> {
     try {
       const db = await this.openDatabase();
@@ -50,7 +42,6 @@ export class StorageService {
       db.close();
 
       if (handle) {
-        // Verificar si aún tenemos permisos
         const permission = await this.verifyPermission(handle);
         if (permission) {
           return handle;
@@ -64,26 +55,17 @@ export class StorageService {
     }
   }
 
-  /**
-   * Verifica si tenemos permisos de lectura en el directorio
-   */
   private async verifyPermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
     try {
       const options = { mode: 'read' } as any;
 
-      // Solo verificar permisos actuales (no solicitar)
-      // requestPermission requiere interacción del usuario
       const permission = await (handle as any).queryPermission(options);
       return permission === 'granted';
     } catch (error) {
-      // Silenciar errores - es normal que falle sin interacción del usuario
       return false;
     }
   }
 
-  /**
-   * Elimina el handle del directorio guardado
-   */
   async clearDirectoryHandle(): Promise<void> {
     try {
       const db = await this.openDatabase();
@@ -98,39 +80,24 @@ export class StorageService {
     }
   }
 
-  /**
-   * Guarda el índice del último video reproducido
-   */
   saveLastVideoIndex(index: number): void {
     localStorage.setItem(this.STORAGE_KEYS.LAST_VIDEO_INDEX, index.toString());
   }
 
-  /**
-   * Recupera el índice del último video reproducido
-   */
   getLastVideoIndex(): number | null {
     const index = localStorage.getItem(this.STORAGE_KEYS.LAST_VIDEO_INDEX);
     return index ? parseInt(index, 10) : null;
   }
 
-  /**
-   * Guarda el nivel de volumen
-   */
   saveVolume(volume: number): void {
     localStorage.setItem(this.STORAGE_KEYS.VOLUME, volume.toString());
   }
 
-  /**
-   * Recupera el nivel de volumen
-   */
   getVolume(): number {
     const volume = localStorage.getItem(this.STORAGE_KEYS.VOLUME);
     return volume ? parseFloat(volume) : 1.0;
   }
 
-  /**
-   * Abre o crea la base de datos IndexedDB
-   */
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('LocalTVDB', 1);
@@ -146,7 +113,6 @@ export class StorageService {
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Crear object store para handles si no existe
         if (!db.objectStoreNames.contains('handles')) {
           db.createObjectStore('handles');
         }
@@ -154,9 +120,6 @@ export class StorageService {
     });
   }
 
-  /**
-   * Limpia todos los datos almacenados
-   */
   async clearAll(): Promise<void> {
     await this.clearDirectoryHandle();
     localStorage.removeItem(this.STORAGE_KEYS.LAST_VIDEO_INDEX);

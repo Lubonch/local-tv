@@ -8,10 +8,9 @@ export interface WeatherData {
   feelsLike: number;
   description: string;
   location: string;
-  icon: string;
+  weatherCode: number;
 }
 
-// Respuesta de Open-Meteo (sin API key requerida)
 interface OpenMeteoResponse {
   current: {
     temperature_2m: number;
@@ -23,7 +22,6 @@ interface OpenMeteoResponse {
   };
 }
 
-// Respuesta de geocoding inverso para obtener nombre de ubicación
 interface ReverseGeocodingResponse {
   results?: Array<{
     name: string;
@@ -46,22 +44,14 @@ export class WeatherService {
 
   constructor(private http: HttpClient) { }
 
-  /**
-   * Inicia la obtención de datos del clima
-   */
   async startWeatherUpdates(): Promise<void> {
-    // Obtener datos inmediatamente
     await this.updateWeather();
 
-    // Configurar actualización periódica
     this.updateInterval = setInterval(() => {
       this.updateWeather();
     }, environment.weatherUpdateInterval);
   }
 
-  /**
-   * Actualiza los datos del clima
-   */
   private async updateWeather(): Promise<void> {
     try {
       const position = await this.getCurrentPosition();
@@ -74,9 +64,6 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Obtiene la posición actual del usuario
-   */
   private getCurrentPosition(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -90,25 +77,19 @@ export class WeatherService {
         {
           enableHighAccuracy: false,
           timeout: 10000,
-          maximumAge: 300000 // 5 minutos
+          maximumAge: 300000
         }
       );
     });
   }
 
-  /**
-   * Obtiene los datos del clima desde Open-Meteo API (sin API key requerida)
-   */
   private async fetchWeatherData(lat: number, lon: number): Promise<WeatherData> {
-    // Open-Meteo API - Completamente gratuito, sin API key
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code&timezone=auto`;
     const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&language=es&format=json`;
 
     try {
-      // Obtener datos del clima
       const weatherResponse = await this.http.get<OpenMeteoResponse>(weatherUrl).toPromise();
 
-      // Obtener nombre de la ubicación
       let location = 'Tu ubicación';
       try {
         const geoResponse = await this.http.get<ReverseGeocodingResponse>(geocodingUrl).toPromise();
@@ -129,7 +110,7 @@ export class WeatherService {
         feelsLike: Math.round(weatherResponse.current.apparent_temperature),
         description: this.getWeatherDescription(weatherResponse.current.weather_code),
         location: location,
-        icon: this.getWeatherIcon(weatherResponse.current.weather_code)
+        weatherCode: weatherResponse.current.weather_code
       };
 
       return weatherData;
@@ -139,10 +120,6 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Convierte el código WMO en descripción del clima
-   * https://open-meteo.com/en/docs
-   */
   private getWeatherDescription(code: number): string {
     const descriptions: { [key: number]: string } = {
       0: 'Despejado',
@@ -173,24 +150,6 @@ export class WeatherService {
     return descriptions[code] || 'Desconocido';
   }
 
-  /**
-   * Convierte el código WMO en un icono simple
-   */
-  private getWeatherIcon(code: number): string {
-    if (code === 0) return '☀️';
-    if (code <= 3) return '⛅';
-    if (code <= 48) return '🌫️';
-    if (code <= 55) return '🌦️';
-    if (code <= 65) return '🌧️';
-    if (code <= 77) return '❄️';
-    if (code <= 82) return '🌧️';
-    if (code <= 86) return '🌨️';
-    return '⛈️';
-  }
-
-  /**
-   * Detiene las actualizaciones automáticas
-   */
   stopWeatherUpdates(): void {
     if (this.updateInterval) {
       clearInterval(this.updateInterval);
@@ -198,9 +157,6 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Obtiene los datos del clima actuales
-   */
   getCurrentWeatherData(): WeatherData | null {
     return this.weatherDataSubject.value;
   }

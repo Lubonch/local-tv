@@ -30,38 +30,28 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    // Suscribirse a cambios en el video actual
     this.playlistService.currentVideo$.subscribe(video => {
       this.currentVideo = video;
     });
 
-    // Cargar el primer video
     this.loadNextVideo();
   }
 
   ngOnDestroy(): void {
-    // Limpiar
   }
 
-  /**
-   * Carga el siguiente video
-   */
   loadNextVideo(): void {
     const nextVideo = this.playlistService.getNextVideo();
     if (nextVideo) {
-      // Limpiar URL del video anterior para liberar memoria
       if (this.currentVideoUrl) {
         URL.revokeObjectURL(this.currentVideoUrl);
       }
 
       this.currentVideo = nextVideo;
-      // Crear blob URL solo para el video actual
-      // El navegador hará streaming - no carga todo el archivo en RAM
       this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
       this.error = null;
       this.isLoading = true;
 
-      // Precargar el siguiente video
       this.preloadNextVideo();
     } else {
       if (this.errorCount >= this.maxConsecutiveErrors) {
@@ -72,9 +62,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Carga el video anterior
-   */
   loadPreviousVideo(): void {
     const previousVideo = this.playlistService.getPreviousVideo();
     if (previousVideo) {
@@ -83,17 +70,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Maneja el evento cuando el video termina
-   */
   onVideoEnded(): void {
     console.log('Video terminado, cargando siguiente...');
     this.loadNextVideo();
   }
 
-  /**
-   * Maneja errores de carga del video
-   */
   onVideoError(event: Event): void {
     console.error('Error cargando video:', this.currentVideo?.name);
     this.errorCount++;
@@ -105,24 +86,16 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
 
     this.error = `Error cargando "${this.currentVideo?.name}". Saltando al siguiente...`;
 
-    // Intentar cargar el siguiente video después de un breve delay
     setTimeout(() => {
       this.loadNextVideo();
     }, 1500);
   }
 
-  /**
-   * Maneja cuando el video está listo para reproducirse
-   */
   onVideoLoaded(): void {
     this.isLoading = false;
-    this.errorCount = 0; // Resetear contador de errores en carga exitosa
+    this.errorCount = 0;
     console.log('Video cargado y listo:', this.currentVideo?.name);
 
-    // NO forzar pantalla completa automáticamente
-    // El usuario puede presionar 'F' si lo desea
-
-    // Reproducir automáticamente
     const video = this.videoElement?.nativeElement;
     if (video) {
       video.play().catch(error => {
@@ -131,11 +104,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Precarga el siguiente video en la playlist
-   */
   private preloadNextVideo(): void {
-    // Obtener referencia al siguiente video sin avanzar la playlist
     const playlist = this.playlistService.getPlaylist();
     const currentIndex = this.playlistService.getCurrentIndex();
 
@@ -145,9 +114,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Alterna play/pausa
-   */
   togglePlayPause(): void {
     const video = this.videoElement?.nativeElement;
     if (video) {
@@ -159,9 +125,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Entra en modo pantalla completa
-   */
   enterFullscreen(): void {
     const videoContainer = this.videoElement?.nativeElement.parentElement;
     if (videoContainer) {
@@ -173,9 +136,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Maneja eventos del teclado
-   */
   onKeyPress(event: KeyboardEvent): void {
     switch(event.key) {
       case ' ':
@@ -198,33 +158,22 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Muestra los controles al mover el mouse
-   */
   onMouseMove(): void {
     this.showControls = true;
 
-    // Limpiar timeout anterior
     if (this.hideControlsTimeout) {
       clearTimeout(this.hideControlsTimeout);
     }
 
-    // Ocultar controles después de 3 segundos sin movimiento
     this.hideControlsTimeout = setTimeout(() => {
       this.showControls = false;
     }, 3000);
   }
 
-  /**
-   * Muestra los controles al entrar con el mouse
-   */
   onMouseEnter(): void {
     this.showControls = true;
   }
 
-  /**
-   * Oculta los controles al salir con el mouse
-   */
   onMouseLeave(): void {
     this.showControls = false;
     if (this.hideControlsTimeout) {
@@ -232,15 +181,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Cambia a otra carpeta
-   */
   onChangeFolder(): void {
-    // Limpiar URL del video actual
     if (this.currentVideoUrl) {
       URL.revokeObjectURL(this.currentVideoUrl);
     }
-    // Emitir evento para volver al selector de carpetas
     window.location.reload();
   }
 }

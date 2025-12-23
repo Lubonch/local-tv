@@ -1,18 +1,18 @@
 <div class="overlay-container">
-  <!-- Temperatura en la esquina inferior izquierda -->
   @if (weatherData) {
     <div class="weather-display">
-      <div class="temperature">{{ temperatureText }}</div>
-      <div class="feels-like">{{ feelsLikeText }}</div>
+      <app-weather-icon [weatherCode]="weatherData.weatherCode" [size]="32"></app-weather-icon>
+      <div class="weather-text">
+        <div class="temperature">{{ temperatureText }}</div>
+        <div class="feels-like">{{ feelsLikeText }}</div>
+      </div>
     </div>
   }
 
-  <!-- Hora en la esquina inferior derecha -->
   <div class="time-display">
     {{ formattedTime }}
   </div>
 
-  <!-- Mensaje de error del clima (si existe) -->
   @if (weatherError) {
     <div class="error-message">
       {{ weatherError }}
