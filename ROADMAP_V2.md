@@ -100,14 +100,23 @@
 
 ---
 
-## Fase 5: Confirmación Modo Aleatorio
+## Fase 5: Confirmación Modo Aleatorio ✅ COMPLETADA
 
 ### Tareas:
-- [ ] **5.1**: Verificar funcionalidad actual
-  - Confirmar que solo funciona modo aleatorio(aleatorio real, no con un seed predecible)
-  - Documentar comportamiento esperado
+- [x] **5.1**: Verificar funcionalidad actual
+  - ✅ Confirmado: Solo modo aleatorio con Math.random() (sin seed predecible)
+  - ✅ Documentado en RANDOM_MODE.md
+  - ✅ Algoritmo Fisher-Yates shuffle + selección sin repetición
   
-- [ ] **5.3**: limpiar archivos innecesarios y comentarios
+- [x] **5.2**: Agregar indicador visual
+  - ✅ Componente RandomModeIndicator en esquina superior derecha
+  - ✅ Icono 🔀 con animación y hover effect
+  - ✅ Tooltip explicativo "Modo Aleatorio Activo"
+  
+- [x] **5.3**: Limpiar archivos innecesarios
+  - ✅ Eliminados: ROADMAP.md, QUICK_START.md, docs/STREAMING.md
+  - ✅ README.md convertido a versión minimalista y humanizada
+  - ✅ Documentación consolidada y simplificada
 
 
 ---
@@ -129,4 +138,25 @@
 - ✅ Fase 2: COMPLETADA (23/12/2024)
 - ✅ Fase 3: COMPLETADA (23/12/2024)
 - ✅ Fase 4: COMPLETADA Parcial - Subtítulos embebidos funcionales (23/12/2024)
-- ⏳ Fase 5: Pendiente
+- ✅ Fase 5: COMPLETADA (23/12/2024)
+
+---
+
+## 🎉 ROADMAP_V2 COMPLETADO
+
+Todas las fases del ROADMAP_V2 han sido implementadas exitosamente.
+
+### Resumen de Funcionalidades Agregadas:
+
+1. **Barra de Progreso con Seek**: Navegación temporal completa con preview
+2. **Nombre del Video**: Info overlay que muestra el video actual
+3. **Control de Volumen**: Slider con persistencia y atajos
+4. **Subtítulos Embebidos**: Soporte para pistas de texto integradas
+5. **Indicador de Modo Aleatorio**: Confirmación visual del comportamiento
+
+### Próximas Mejoras Sugeridas:
+
+- Archivos de subtítulos externos (.srt/.vtt)
+- Control de pistas de audio múltiples
+- Temas de color personalizables
+- Estadísticas de reproducción

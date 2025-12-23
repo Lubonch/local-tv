@@ -1,13 +1,13 @@
 <div class="subtitle-control"
      (mouseenter)="onMouseEnter()"
      (mouseleave)="onMouseLeave()">
-  <button class="subtitle-icon" 
+  <button class="subtitle-icon"
           (click)="toggleMenu()"
           [class.active]="currentSubtitleIndex >= 0"
           [disabled]="!hasSubtitles">
     CC
   </button>
-  
+
   @if (showMenu && hasSubtitles) {
     <div class="subtitle-menu">
       <div class="subtitle-option"

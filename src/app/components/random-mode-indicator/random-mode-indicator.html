@@ -1,0 +1,11 @@
+<div class="random-indicator"
+     (mouseenter)="showTooltip = true"
+     (mouseleave)="showTooltip = false">
+  <div class="shuffle-icon">🔀</div>
+  @if (showTooltip) {
+    <div class="tooltip">
+      Modo Aleatorio Activo
+      <div class="tooltip-subtitle">Los videos se reproducen en orden aleatorio</div>
+    </div>
+  }
+</div>

@@ -1,230 +1,130 @@
-# Local TV
+# Local TV 📺
 
-Tu canal personal de videos con overlay de hora y temperatura, similar a los canales de televisión.
+Tu canal personal de videos con overlay de hora y clima, como los canales de TV.
 
-## Descripción
+---
 
-Local TV es una aplicación web desarrollada en Angular que te permite seleccionar una carpeta (con subcarpetas) que contenga videos y los reproduce de forma aleatoria y continua, mostrando un overlay profesional con la hora actual y la temperatura de tu ubicación.
+## ¿Qué es esto?
 
-### Características principales
+Una app web que reproduce tus videos de forma aleatoria y continua, mostrando la hora y temperatura en pantalla. Perfecto para tener de fondo mientras trabajas o descansas.
 
-- Reproducción aleatoria continua de videos
-- Selección de carpetas con subcarpetas recursivamente
-- Reloj en tiempo real
-- Temperatura y sensación térmica en Celsius
-- Recuerda tu carpeta seleccionada (IndexedDB + localStorage)
-- Controles por teclado
-- Diseño pantalla completa minimalista
-- Overlay tipo TV profesional
+## Características
 
-## Tecnologías
+- 🎲 **Reproducción aleatoria** - Nunca sabes qué sigue
+- 🕐 **Reloj en tiempo real** - Siempre sabes la hora
+- 🌡️ **Temperatura actual** - Basada en tu ubicación
+- 💾 **Recuerda tu carpeta** - No tienes que seleccionarla cada vez
+- ⌨️ **Atajos de teclado** - Control total sin mouse
+- 🎬 **Barra de progreso** - Navega por el video actual
+- 🔊 **Control de volumen** - Ajusta el sonido a tu gusto
+- 📝 **Subtítulos** - Soporte para pistas embebidas
+- 🎨 **Minimalista** - Interfaz limpia y oscura
 
-- Angular 20 - Framework principal
-- File System Access API - Selección de carpetas
-- Geolocation API - Ubicación del usuario
-- Open-Meteo API - Datos meteorológicos (sin API key requerida)
-- IndexedDB - Almacenamiento persistente
+---
 
-## Requisitos
+## Inicio Rápido
 
-- Node.js (v18 o superior)
-- npm (v9 o superior)
-- Navegador compatible:
-  - Chrome/Chromium (recomendado)
-  - Edge
-  - Brave
-  - Firefox (funcionalidad limitada con File System API)
-
-## Instalación
-
-### 1. Clonar el repositorio
-
+### 1. Instalar
 ```bash
 git clone https://github.com/Lubonch/local-tv.git
 cd local-tv
-```
-
-### 2. Instalar dependencias
-
-```bash
 npm install
 ```
 
-### 3. Ejecutar en desarrollo
-
+### 2. Ejecutar
 ```bash
 npm start
 ```
 
-La aplicación estará disponible en: `http://localhost:4200`
+### 3. Usar
+1. Abre http://localhost:4200 en Chrome o Edge
+2. Permite la geolocalización
+3. Selecciona tu carpeta de videos
+4. ¡Disfruta!
 
-Nota: El clima usa Open-Meteo API que es completamente gratuito, sin límites y sin necesidad de API key.
+---
 
-## Uso
+## Controles
 
-### Primera vez
+| Tecla | Acción |
+|-------|--------|
+| `Espacio` | Pausar/Reproducir |
+| `→` | +5 segundos |
+| `←` | -5 segundos |
+| `Shift + →` | Siguiente video |
+| `Shift + ←` | Video anterior |
+| `J` | -10 segundos |
+| `L` | +10 segundos |
+| `0-9` | Saltar al 0%-90% |
+| `↑` | Subir volumen |
+| `↓` | Bajar volumen |
+| `M` | Silenciar/Activar audio |
+| `C` | Activar/Desactivar subtítulos |
+| `F` | Pantalla completa |
+| `Esc` | Salir de pantalla completa |
 
-1. Abrir la aplicación en tu navegador
-2. Permitir geolocalización (para mostrar temperatura)
-3. Hacer clic en "Seleccionar Carpeta"
-4. Seleccionar una carpeta que contenga videos
-5. La reproducción comenzará automáticamente
+---
 
-### Controles de teclado
+## Formatos Soportados
 
-- Espacio - Pausar/Reproducir
-- Flecha Derecha - Siguiente video aleatorio
-- Flecha Izquierda - Video anterior
-- F - Pantalla completa
-- Esc - Salir de pantalla completa
+MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador pueda reproducir.
 
-### Formatos de video soportados
+**Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
-La aplicación soporta todos los formatos que tu navegador pueda reproducir:
+---
 
-- MP4 (H.264, H.265) - Mejor compatibilidad
-- WebM (VP8, VP9)
-- MKV (si el códec es soportado)
-- AVI (limitado)
-- MOV (limitado)
+## Deploy en GitHub Pages
 
-## Estructura del proyecto
-
-```
-local-tv/
-├── src/
-│   ├── app/
-│   │   ├── components/
-│   │   │   ├── folder-selector/    # Selección de carpeta
-│   │   │   ├── video-player/       # Reproductor de video
-│   │   │   └── overlay/            # Overlay de hora y temperatura
-│   │   ├── services/
-│   │   │   ├── file-system.service.ts    # Manejo de archivos
-│   │   │   ├── storage.service.ts        # Persistencia
-│   │   │   ├── playlist.service.ts       # Lógica aleatoria
-│   │   │   ├── weather.service.ts        # API del clima
-│   │   │   └── clock.service.ts          # Reloj
-│   │   └── environments/
-│   │       ├── environment.ts            # Producción
-│   │       └── environment.development.ts # Desarrollo
-│   └── ...
-├── ROADMAP.md                # Plan de desarrollo
-└── README.md                 # Este archivo
-```
-
-## Build para producción
-
-### Build local
+Ya está configurado. Solo haz push a `main`:
 
 ```bash
-npm run build:prod
+git push origin main
 ```
 
-Los archivos optimizados estarán en `dist/local-tv/browser/`
+GitHub Actions se encarga del resto. Tu app estará en: `https://tu-usuario.github.io/local-tv`
 
-Para servir la aplicación localmente:
+---
 
-```bash
-npm run serve:prod
-```
+## Navegadores Compatibles
 
-### Deploy a GitHub Pages
+✅ Chrome (recomendado)  
+✅ Edge  
+✅ Brave  
+⚠️ Firefox (limitado)
 
-La aplicación está configurada para desplegar automáticamente a GitHub Pages:
+---
 
-1. Hacer push a la rama main:
+## Preguntas Frecuentes
 
-   ```bash
-   git push origin main
-   ```
+**¿Necesito API keys?**  
+No. Todo funciona sin configuración.
 
-2. GitHub Actions se encargará del build y deploy automáticamente
+**¿Funciona sin internet?**  
+Sí, excepto por la temperatura (usa Open-Meteo API gratuita).
 
-3. Activar GitHub Pages en tu repositorio:
-   - Ir a Settings > Pages
-   - Source: GitHub Actions
-   - La aplicación estará disponible en: `https://tu-usuario.github.io/local-tv`
+**¿Guarda mi carpeta?**  
+Sí, usando IndexedDB. No en modo incógnito.
 
-Nota: No necesita variables de entorno ni API keys. Todo funciona sin configuración adicional.
+**¿Por qué no aparece la temperatura?**  
+Verifica que permitiste la geolocalización.
 
-## Solución de problemas
+**¿Cuántos videos puede manejar?**  
+Miles. Escanea recursivamente todas las subcarpetas.
 
-### La aplicación no carga videos
+---
 
-- Verifica que la carpeta seleccionada contenga videos
-- Comprueba los formatos de video (preferiblemente MP4)
-- Mira la consola del navegador para errores
-- Extensiones válidas: .mp4, .mkv, .webm, .avi, .mov, .m4v, .wmv, .flv, .ogv, .3gp
-- Nota: La aplicación escanea subcarpetas recursivamente
+## Tecnología
 
-### No se muestra la temperatura
+Angular 20 + File System Access API + Geolocation API + Open-Meteo API
 
-- Comprueba que permitiste la geolocalización cuando el navegador lo solicite
-- Asegúrate de tener conexión a internet
-- Revisa la consola para errores de red
-- API gratuita: Usa Open-Meteo, sin necesidad de registro ni API key
-- Nota: La temperatura se actualiza cada 30 minutos
-- Ubicación: Si no se puede obtener tu ciudad, se mostrará "Tu ubicación"
-
-### El navegador no permite seleccionar carpetas
-
-- Usa Chrome, Edge o Brave (recomendado)
-- Actualiza tu navegador a la última versión
-- Firefox tiene soporte limitado para File System Access API
-- HTTPS requerido en producción (localhost funciona con HTTP)
-
-### Los videos no se reproducen
-
-- Verifica el formato del video
-- Asegúrate de que el navegador soporta el códec
-- Intenta con archivos MP4 (H.264)
-- Videos corruptos: La aplicación los saltará automáticamente después de 3 errores consecutivos
-- Códecs: H.264/H.265 para MP4, VP8/VP9 para WebM funcionan mejor
-
-### Error "Demasiados errores consecutivos"
-
-- Causa: 3 o más videos consecutivos fallaron al cargar
-- Solución: Verifica que tus archivos de video no estén corruptos
-- Recomendación: Convierte videos problemáticos a MP4 con H.264
-
-### La carpeta seleccionada no se recuerda
-
-- IndexedDB: Verifica que tu navegador permita IndexedDB
-- Modo incógnito: No se guardan las preferencias en modo privado
-- Permisos: La aplicación necesita re-verificar permisos al recargar
-
-### Geolocalización bloqueada
-
-- Chrome: Configuración > Privacidad > Configuración de sitios > Ubicación
-- Edge: Configuración > Cookies y permisos del sitio > Ubicación
-- Alternativa: La aplicación funciona sin temperatura, solo muestra hora
-
-### Performance lento con muchos videos
-
-- Optimización: La aplicación escanea recursivamente al inicio
-- Recomendación: Para carpetas con más de 1000 videos, el escaneo puede tardar
-- Memoria: Los videos se liberan de memoria después de reproducirse
-- Precarga: El siguiente video se precarga automáticamente
-
-## Roadmap
-
-Ver ROADMAP.md para el plan completo de desarrollo y progreso.
-
-## Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el proyecto
-2. Crea una rama para tu funcionalidad
-3. Commit tus cambios
-4. Push a la rama
-5. Abre un Pull Request
+---
 
 ## Licencia
 
-Este proyecto está bajo la Licencia MIT.
+MIT - Haz lo que quieras con esto.
+
+---
 
 ## Autor
 
-Lubonch
-
+[Lubonch](https://github.com/Lubonch)

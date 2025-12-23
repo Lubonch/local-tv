@@ -8,10 +8,11 @@ import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
 import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
+import { RandomModeIndicatorComponent } from '../random-mode-indicator/random-mode-indicator';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, RandomModeIndicatorComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
