@@ -6,10 +6,11 @@ import { CommonModule } from '@angular/common';
 import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
+import { VolumeControlComponent } from '../volume-control/volume-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -30,6 +31,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   duration: number = 0;
   private updateInterval: any;
 
+  volume: number = 100;
+  isMuted: boolean = false;
+  private readonly VOLUME_STORAGE_KEY = 'video-volume';
+  private readonly MUTE_STORAGE_KEY = 'video-muted';
+
   constructor(
     private playlistService: PlaylistService,
     private storageService: StorageService
@@ -40,6 +46,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       this.currentVideo = video;
     });
 
+    this.loadVolume();
     this.loadNextVideo();
   }
 
@@ -111,6 +118,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     const video = this.videoElement?.nativeElement;
     if (video) {
       this.duration = video.duration;
+      this.applyVolume();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -200,6 +208,19 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
           this.seek(-5);
         }
         break;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.adjustVolume(5);
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        this.adjustVolume(-5);
+        break;
+      case 'm':
+      case 'M':
+        event.preventDefault();
+        this.onMuteToggle();
+        break;
       case 'j':
       case 'J':
         event.preventDefault();
@@ -276,6 +297,48 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.currentVideoUrl);
     }
     window.location.reload();
+  }
+
+  onVolumeChange(newVolume: number): void {
+    this.volume = newVolume;
+    this.isMuted = newVolume === 0;
+    this.applyVolume();
+    this.saveVolume();
+  }
+
+  onMuteToggle(): void {
+    this.isMuted = !this.isMuted;
+    this.applyVolume();
+    localStorage.setItem(this.MUTE_STORAGE_KEY, JSON.stringify(this.isMuted));
+  }
+
+  private loadVolume(): void {
+    const savedVolume = localStorage.getItem(this.VOLUME_STORAGE_KEY);
+    const savedMute = localStorage.getItem(this.MUTE_STORAGE_KEY);
+
+    if (savedVolume) {
+      this.volume = parseInt(savedVolume);
+    }
+
+    if (savedMute) {
+      this.isMuted = JSON.parse(savedMute);
+    }
+  }
+
+  private saveVolume(): void {
+    localStorage.setItem(this.VOLUME_STORAGE_KEY, this.volume.toString());
+  }
+
+  private applyVolume(): void {
+    const video = this.videoElement?.nativeElement;
+    if (video) {
+      video.volume = this.isMuted ? 0 : this.volume / 100;
+    }
+  }
+
+  private adjustVolume(delta: number): void {
+    const newVolume = Math.max(0, Math.min(100, this.volume + delta));
+    this.onVolumeChange(newVolume);
   }
 }
 

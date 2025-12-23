@@ -33,6 +33,12 @@
       <button class="change-folder-btn" (click)="onChangeFolder()">
         Cambiar Carpeta
       </button>
+      <app-volume-control
+        [volume]="volume"
+        [isMuted]="isMuted"
+        (volumeChange)="onVolumeChange($event)"
+        (muteToggle)="onMuteToggle()">
+      </app-volume-control>
     </div>
   }
 

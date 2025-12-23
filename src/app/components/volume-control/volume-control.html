@@ -1,0 +1,19 @@
+<div class="volume-control"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
+  <button class="volume-icon" (click)="toggleMute()">
+    {{ volumeIcon }}
+  </button>
+  
+  @if (showSlider) {
+    <div class="volume-slider-container">
+      <input
+        type="range"
+        min="0"
+        max="100"
+        [value]="volume"
+        (input)="onVolumeChange($event)"
+        class="volume-slider">
+    </div>
+  }
+</div>
