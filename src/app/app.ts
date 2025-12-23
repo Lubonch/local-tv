@@ -23,10 +23,8 @@ export class App implements OnInit {
     // Verificar si ya hay una playlist cargada
     this.playlistService.playlistLoaded$.subscribe(loaded => {
       if (loaded) {
-        // Pequeño delay para mostrar el mensaje de éxito
-        setTimeout(() => {
-          this.showFolderSelector = false;
-        }, 1500);
+        // Ocultar selector y mostrar video player inmediatamente
+        this.showFolderSelector = false;
       }
     });
   }

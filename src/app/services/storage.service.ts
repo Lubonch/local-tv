@@ -71,23 +71,12 @@ export class StorageService {
     try {
       const options = { mode: 'read' } as any;
 
-      // Verificar permisos actuales
-      if ((await (handle as any).queryPermission(options)) === 'granted') {
-        return true;
-      }
-
-      // Solicitar permisos si no los tenemos
-      if ((await (handle as any).requestPermission(options)) === 'granted') {
-        return true;
-      }
-
-      return false;
+      // Solo verificar permisos actuales (no solicitar)
+      // requestPermission requiere interacción del usuario
+      const permission = await (handle as any).queryPermission(options);
+      return permission === 'granted';
     } catch (error) {
-      // Error esperado: Los navegadores requieren interacción del usuario para verificar permisos
-      // Solo logueamos si no es el error esperado de "User activation required"
-      if (error instanceof Error && !error.message.includes('User activation')) {
-        console.error('Error verificando permisos:', error);
-      }
+      // Silenciar errores - es normal que falle sin interacción del usuario
       return false;
     }
   }

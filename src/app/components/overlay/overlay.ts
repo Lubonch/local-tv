@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClockService } from '../../services/clock.service';
 import { WeatherService, WeatherData } from '../../services/weather.service';
@@ -21,7 +21,8 @@ export class OverlayComponent implements OnInit, OnDestroy {
 
   constructor(
     private clockService: ClockService,
-    private weatherService: WeatherService
+    private weatherService: WeatherService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -29,16 +30,19 @@ export class OverlayComponent implements OnInit, OnDestroy {
     this.clockService.start();
     this.clockSubscription = this.clockService.currentTime$.subscribe(time => {
       this.currentTime = time;
+      this.cdr.markForCheck(); // Forzar detección de cambios
     });
 
     // Iniciar actualizaciones del clima
     this.weatherService.startWeatherUpdates();
     this.weatherSubscription = this.weatherService.weatherData$.subscribe(data => {
       this.weatherData = data;
+      this.cdr.markForCheck(); // Forzar detección de cambios
     });
 
     this.weatherErrorSubscription = this.weatherService.error$.subscribe(error => {
       this.weatherError = error;
+      this.cdr.markForCheck(); // Forzar detección de cambios
     });
   }
 
@@ -54,10 +58,10 @@ export class OverlayComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Formatea la hora actual
+   * Formatea la hora actual (solo HH:MM, sin segundos)
    */
   get formattedTime(): string {
-    return this.clockService.formatTime(this.currentTime, true);
+    return this.clockService.formatTime(this.currentTime, false);
   }
 
   /**

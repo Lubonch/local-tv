@@ -35,8 +35,10 @@ export class FolderSelectorComponent implements OnInit {
       return;
     }
 
-    // Intentar cargar carpeta guardada
-    await this.tryLoadSavedFolder();
+    // FORZAR SELECCIÓN MANUAL - No intentar cargar carpeta guardada
+    // Esto evita problemas de permisos y timeout
+    this.isLoading = false;
+    this.loadingProgress = 0;
   }
 
   /**
@@ -48,11 +50,11 @@ export class FolderSelectorComponent implements OnInit {
       this.loadingProgress = 10;
       this.loadingMessage = 'Buscando carpeta guardada...';
 
-      // Timeout de seguridad: si toma más de 3 segundos, mostrar selector
+      // Timeout muy corto: si toma más de 1 segundo, mostrar selector
       const timeoutPromise = new Promise<null>((resolve) => {
         setTimeout(() => {
           resolve(null);
-        }, 3000); // Reducido a 3 segundos
+        }, 1000); // 1 segundo
       });
 
       const savedHandle = await Promise.race([
@@ -66,9 +68,10 @@ export class FolderSelectorComponent implements OnInit {
         this.fileSystemService.setDirectoryHandle(savedHandle);
         await this.loadVideosFromFolder();
       } else {
-        // No hay carpeta guardada o timeout - limpiar estado
+        // No hay carpeta guardada o timeout - mostrar selector
         this.isLoading = false;
         this.loadingProgress = 0;
+        this.loadingMessage = 'Cargando...';
       }
     } catch (error) {
       console.error('Error cargando carpeta guardada:', error);
@@ -76,7 +79,8 @@ export class FolderSelectorComponent implements OnInit {
       await this.storageService.clearDirectoryHandle();
       this.isLoading = false;
       this.loadingProgress = 0;
-      this.error = null; // Limpiar cualquier error previo
+      this.loadingMessage = 'Cargando...';
+      this.error = null;
     }
   }
 
@@ -146,8 +150,11 @@ export class FolderSelectorComponent implements OnInit {
       this.playlistService.loadPlaylist(videos);
       this.loadingProgress = 100;
 
-      // Emitir evento de carpeta seleccionada
-      this.folderSelected.emit();
+      // Pequeño delay para mostrar 100% completado
+      setTimeout(() => {
+        // Emitir evento de carpeta seleccionada
+        this.folderSelected.emit();
+      }, 500);
     } catch (error: any) {
       console.error('Error cargando videos:', error);
       this.error = error.message || 'Error al cargar videos';
