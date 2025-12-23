@@ -51,30 +51,15 @@ cd local-tv
 npm install
 ```
 
-### 3. Configurar API Key de OpenWeatherMap
-
-1. Obtén una API key gratuita en: https://openweathermap.org/api
-2. Abre `src/environments/environment.development.ts`
-3. Reemplaza `YOUR_API_KEY_HERE` con tu API key:
-
-```typescript
-export const environment = {
-  production: false,
-  openWeatherMapApiKey: 'TU_API_KEY_AQUI',
-  weatherUpdateInterval: 1800000,
-  weatherApiUrl: 'https://api.openweathermap.org/data/2.5/weather'
-};
-```
-
-4. Haz lo mismo en `src/environments/environment.ts` para producción
-
-### 4. Ejecutar en desarrollo
+### 3. Ejecutar en desarrollo
 
 ```bash
 npm start
 ```
 
 La aplicación estará disponible en: `http://localhost:4200`
+
+> **✨ Sin configuración necesaria**: El clima usa **Open-Meteo API** que es completamente gratuito, sin límites y sin necesidad de API key. Perfecto para GitHub Pages.
 
 ## 🎮 Uso
 
@@ -130,17 +115,37 @@ local-tv/
 
 ## 🏗️ Build para Producción
 
+### Build Local
+
 ```bash
-npm run build
+npm run build:prod
 ```
 
 Los archivos optimizados estarán en `dist/local-tv/browser/`
 
-Para servir la aplicación:
+Para servir la aplicación localmente:
 
 ```bash
-npx http-server dist/local-tv/browser -p 8080
+npm run serve:prod
 ```
+
+### Deploy a GitHub Pages 🚀
+
+La aplicación está configurada para desplegar automáticamente a GitHub Pages:
+
+1. **Haz push a la rama `main`**:
+   ```bash
+   git push origin main
+   ```
+
+2. **GitHub Actions se encargará del build y deploy automáticamente**
+
+3. **Activa GitHub Pages en tu repositorio**:
+   - Ve a Settings > Pages
+   - Source: GitHub Actions
+   - La app estará disponible en: `https://tu-usuario.github.io/local-tv`
+
+> **✅ Perfecto para GitHub Pages**: No necesita variables de entorno ni API keys. Todo funciona out-of-the-box.
 
 ## 🐛 Solución de Problemas
 
@@ -154,12 +159,12 @@ npx http-server dist/local-tv/browser -p 8080
 
 ### No se muestra la temperatura
 
-- **Verifica** que hayas configurado la API key en los archivos de environment
 - **Comprueba** que permitiste la geolocalización cuando el navegador lo solicite
 - **Asegúrate** de tener conexión a internet
-- **Revisa** la consola para errores de API
-- **API Key**: Obtén una gratuita en https://openweathermap.org/api
+- **Revisa** la consola para errores de red
+- **API gratuita**: Usa Open-Meteo, sin necesidad de registro ni API key
 - **Nota**: La temperatura se actualiza cada 30 minutos
+- **Ubicación**: Si no se puede obtener tu ciudad, se mostrará "Tu ubicación"
 
 ### El navegador no permite seleccionar carpetas
 

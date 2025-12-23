@@ -7,24 +7,14 @@
 npm install
 ```
 
-### 2. Configurar API Key del Clima
-Edita `src/environments/environment.development.ts`:
-```typescript
-openWeatherMapApiKey: 'TU_API_KEY_AQUI'
-```
-
-**¿Dónde obtengo la API Key?**
-1. Ve a <https://openweathermap.org/api>
-2. Crea una cuenta gratuita
-3. Copia tu API key
-4. Pégala en el archivo
-
-### 3. Iniciar la aplicación
+### 2. Iniciar la aplicación
 ```bash
 npm start
 ```
 
 Abre <http://localhost:4200> en Chrome o Edge
+
+> **Nota**: ¡No necesitas configurar ninguna API key! El clima usa Open-Meteo que es completamente gratuito y sin registro.
 
 ---
 
@@ -52,6 +42,7 @@ Abre <http://localhost:4200> en Chrome o Edge
 
 ## 🏗️ Build para Producción
 
+### Build Local
 ```bash
 npm run build:prod
 ```
@@ -61,6 +52,19 @@ Servir archivos:
 npm run serve:prod
 ```
 
+### Deploy a GitHub Pages 🚀
+
+1. Haz push a `main`:
+   ```bash
+   git push origin main
+   ```
+
+2. GitHub Actions despliega automáticamente
+
+3. Tu app estará en: `https://tu-usuario.github.io/local-tv`
+
+> **✅ Sin configuración**: No necesitas API keys ni variables de entorno. Todo funciona de inmediato.
+
 ---
 
 ## 🐛 Problemas Comunes
@@ -69,8 +73,8 @@ npm run serve:prod
 ✅ Verifica que los archivos sean `.mp4`, `.mkv` o `.webm`
 
 ### No muestra temperatura
-✅ Configuraste la API key?  
-✅ Permitiste geolocalización?
+✅ Permitiste geolocalización?  
+✅ Tienes conexión a internet?
 
 ### Error al seleccionar carpeta
 ✅ Usa Chrome, Edge o Brave (no Firefox)
