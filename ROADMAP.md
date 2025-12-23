@@ -181,14 +181,14 @@ Crear una aplicación Angular que reproduzca videos aleatorios de una carpeta se
 
 **Estado Actual**: ✅ Fases 1-7 COMPLETADAS
 
-**Proyecto**: Local TV - Listo para Producción �
+**Proyecto**: Local TV - Listo para GitHub Pages 🚀
 
-**Commits en develop**:
-- `76d4b70` - Fases 6 y 7: Optimizaciones, manejo de errores y documentación
-- `a9b9e85` - Fix: Migración a sintaxis moderna de control flow
-- `a7ce31b` - Docs: Documentación completa en README
-- `e826d58` - Feat: Implementación completa de Local TV
-- `d779426` - Initial commit
+**Commits recientes en develop**:
+- `498b61d` - Migración a Open-Meteo (sin API key) + GitHub Pages workflow
+- `ba04977` - Botón "Cambiar carpeta" al mover mouse (Fase 5.2)
+- `464ef52` - Guía de inicio rápido
+- `ae52384` - Resumen completo del proyecto
+- `76d4b70` - Fases 6 y 7: Optimizaciones y documentación
 
 **Última Actualización**: 23 de Diciembre, 2025
 
@@ -240,10 +240,16 @@ Crear una aplicación Angular que reproduzca videos aleatorios de una carpeta se
    - Instrucciones paso a paso
    - Guía de formatos soportados
 
+7. **GitHub Pages Ready** 🚀
+   - Migración a Open-Meteo (sin API key)
+   - GitHub Actions workflow
+   - Deploy automático
+   - Sin variables de entorno necesarias
+
 ### 🔜 Mejoras Futuras (Opcionales)
 
 - Soporte para subtítulos (.srt, .vtt)
-- Botón "Cambiar carpeta" visible al mover el mouse
+- ~~Botón "Cambiar carpeta" visible al mover el mouse~~ ✅ **COMPLETADO**
 - Selección de múltiples carpetas
 - Playlists personalizadas
 - Modo oscuro/claro para el overlay
