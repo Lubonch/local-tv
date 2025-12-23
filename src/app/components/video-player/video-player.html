@@ -39,14 +39,6 @@
         (volumeChange)="onVolumeChange($event)"
         (muteToggle)="onMuteToggle()">
       </app-volume-control>
-      <app-subtitle-control
-        [subtitleTracks]="subtitleTracks"
-        [audioTracks]="audioTracks"
-        [currentSubtitleIndex]="currentSubtitleIndex"
-        [currentAudioIndex]="currentAudioIndex"
-        (subtitleChange)="onSubtitleChange($event)"
-        (audioChange)="onAudioChange($event)">
-      </app-subtitle-control>
     </div>
   }
 

@@ -69,31 +69,31 @@
 
 ---
 
-## Fase 4: Manejo de Subtítulos ✅ COMPLETADA
+## Fase 4: Manejo de Subtítulos
 
 ### Tareas:
-- [x] **4.1**: Detectar archivos de subtítulos
+- [ ] **4.1**: Detectar archivos de subtítulos
   - Buscar archivos .srt o .vtt con mismo nombre que video
   - Parsear formato SRT/VTT
   - Listar subtítulos disponibles
   - Detectar subtítulos embebidos en el archivo de video (pistas de texto)
   
-- [x] **4.2**: Crear componente SubtitleControl
+- [ ] **4.2**: Crear componente SubtitleControl
   - Botón CC en controles
   - Lista desplegable con idiomas disponibles
   - Opción "Sin subtítulos"
   
-- [x] **4.3**: Renderizar subtítulos
+- [ ] **4.3**: Renderizar subtítulos
   - Usar elemento <track> nativo de HTML5
   - O implementar renderizado custom con overlay
   - Sincronizar con tiempo del video
   
-- [x] **4.4**: Persistencia y atajos
+- [ ] **4.4**: Persistencia y atajos
   - Recordar preferencia de subtítulos en localStorage
   - Atajo C para toggle subtítulos
   - Permitir cambio durante reproducción
 
-- [x] **4.5**: Control de pistas de audio
+- [ ] **4.5**: Control de pistas de audio
   - Detectar pistas de audio múltiples en el video
   - Crear selector de idioma de audio
   - Mostrar nombre/idioma de cada pista disponible
@@ -106,23 +106,18 @@
 
 ### Tareas:
 - [ ] **5.1**: Verificar funcionalidad actual
-  - Confirmar que solo funciona modo aleatorio
+  - Confirmar que solo funciona modo aleatorio(aleatorio real, no con un seed predecible)
   - Documentar comportamiento esperado
   - Verificar que no haya modo secuencial accidental
   
-- [ ] **5.2**: Agregar indicador visual (opcional)
+- [ ] **5.2**: Agregar indicador visual (no opcional)
   - Pequeño icono/texto indicando "Modo Aleatorio"
   - Tooltip explicativo al hacer hover
   - Posicionar sin interferir con otros controles
-
----
-
-## Fase 6: Limpiar comentarios y archivos no necesarioa
-
-### Tareas:
-- [ ] **5.1**: VLimpiar comentarios y archivos no necesarioa
-  - Limpiar comentarios y archivos no necesarioa
-
+- [ ] **5.3**: limpiar archivos innecesarios y comentarios
+  - Pequeño icono/texto indicando "Modo Aleatorio"
+  - Tooltip explicativo al hacer hover
+  - Posicionar sin interferir con otros controles
 
 ---
 
@@ -142,5 +137,5 @@
 - ✅ Fase 1: COMPLETADA (23/12/2024)
 - ✅ Fase 2: COMPLETADA (23/12/2024)
 - ✅ Fase 3: COMPLETADA (23/12/2024)
-- ✅ Fase 4: COMPLETADA (23/12/2024)
+- ⏳ Fase 4: Pendiente
 - ⏳ Fase 5: Pendiente

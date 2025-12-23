@@ -7,11 +7,10 @@ import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
-import { SubtitleControlComponent, SubtitleTrack, AudioTrack } from '../subtitle-control/subtitle-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -36,12 +35,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   isMuted: boolean = false;
   private readonly VOLUME_STORAGE_KEY = 'video-volume';
   private readonly MUTE_STORAGE_KEY = 'video-muted';
-
-  subtitleTracks: SubtitleTrack[] = [];
-  audioTracks: AudioTrack[] = [];
-  currentSubtitleIndex: number = -1;
-  currentAudioIndex: number = 0;
-  private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
   constructor(
     private playlistService: PlaylistService,
@@ -126,7 +119,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
-      this.detectTracks();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -228,11 +220,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       case 'M':
         event.preventDefault();
         this.onMuteToggle();
-        break;
-      case 'c':
-      case 'C':
-        event.preventDefault();
-        this.toggleSubtitles();
         break;
       case 'j':
       case 'J':
@@ -352,85 +339,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   private adjustVolume(delta: number): void {
     const newVolume = Math.max(0, Math.min(100, this.volume + delta));
     this.onVolumeChange(newVolume);
-  }
-
-  private detectTracks(): void {
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    this.subtitleTracks = [];
-    this.audioTracks = [];
-
-    const textTracks = video.textTracks;
-    for (let i = 0; i < textTracks.length; i++) {
-      const track = textTracks[i];
-      if (track.kind === 'subtitles' || track.kind === 'captions') {
-        this.subtitleTracks.push({
-          index: i,
-          label: track.label || `Subtítulo ${i + 1}`,
-          language: track.language,
-          kind: track.kind
-        });
-      }
-    }
-
-    const audioTracksList = (video as any).audioTracks;
-    if (audioTracksList) {
-      for (let i = 0; i < audioTracksList.length; i++) {
-        const track = audioTracksList[i];
-        this.audioTracks.push({
-          index: i,
-          label: track.label || `Audio ${i + 1}`,
-          language: track.language
-        });
-      }
-    }
-
-    this.loadSubtitlePreference();
-  }
-
-  onSubtitleChange(index: number): void {
-    this.currentSubtitleIndex = index;
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    const textTracks = video.textTracks;
-    for (let i = 0; i < textTracks.length; i++) {
-      textTracks[i].mode = i === index ? 'showing' : 'hidden';
-    }
-
-    localStorage.setItem(this.SUBTITLE_STORAGE_KEY, index.toString());
-  }
-
-  onAudioChange(index: number): void {
-    this.currentAudioIndex = index;
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    const audioTracksList = (video as any).audioTracks;
-    if (audioTracksList) {
-      for (let i = 0; i < audioTracksList.length; i++) {
-        audioTracksList[i].enabled = i === index;
-      }
-    }
-  }
-
-  private loadSubtitlePreference(): void {
-    const saved = localStorage.getItem(this.SUBTITLE_STORAGE_KEY);
-    if (saved) {
-      const index = parseInt(saved);
-      if (index >= -1 && index < this.subtitleTracks.length) {
-        this.onSubtitleChange(index);
-      }
-    }
-  }
-
-  toggleSubtitles(): void {
-    if (this.currentSubtitleIndex >= 0) {
-      this.onSubtitleChange(-1);
-    } else if (this.subtitleTracks.length > 0) {
-      this.onSubtitleChange(0);
-    }
   }
 }
 
