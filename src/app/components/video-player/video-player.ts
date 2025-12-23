@@ -3,10 +3,11 @@ import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
 import { CommonModule } from '@angular/common';
+import { OverlayComponent } from '../overlay/overlay';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule],
+  imports: [CommonModule, OverlayComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -14,6 +15,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
 
   currentVideo: VideoFile | null = null;
+  currentVideoUrl: string = '';
   nextVideo: VideoFile | null = null;
   isLoading: boolean = false;
   error: string | null = null;
@@ -48,11 +50,14 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     const nextVideo = this.playlistService.getNextVideo();
     if (nextVideo) {
       // Limpiar URL del video anterior para liberar memoria
-      if (this.currentVideo && this.currentVideo.url) {
-        URL.revokeObjectURL(this.currentVideo.url);
+      if (this.currentVideoUrl) {
+        URL.revokeObjectURL(this.currentVideoUrl);
       }
 
       this.currentVideo = nextVideo;
+      // Crear blob URL solo para el video actual
+      // El navegador hará streaming - no carga todo el archivo en RAM
+      this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
       this.error = null;
       this.isLoading = true;
 
@@ -114,8 +119,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     this.errorCount = 0; // Resetear contador de errores en carga exitosa
     console.log('Video cargado y listo:', this.currentVideo?.name);
 
-    // Intentar entrar en pantalla completa
-    this.enterFullscreen();
+    // NO forzar pantalla completa automáticamente
+    // El usuario puede presionar 'F' si lo desea
 
     // Reproducir automáticamente
     const video = this.videoElement?.nativeElement;
@@ -198,12 +203,12 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
    */
   onMouseMove(): void {
     this.showControls = true;
-    
+
     // Limpiar timeout anterior
     if (this.hideControlsTimeout) {
       clearTimeout(this.hideControlsTimeout);
     }
-    
+
     // Ocultar controles después de 3 segundos sin movimiento
     this.hideControlsTimeout = setTimeout(() => {
       this.showControls = false;
@@ -231,6 +236,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
    * Cambia a otra carpeta
    */
   onChangeFolder(): void {
+    // Limpiar URL del video actual
+    if (this.currentVideoUrl) {
+      URL.revokeObjectURL(this.currentVideoUrl);
+    }
     // Emitir evento para volver al selector de carpetas
     window.location.reload();
   }

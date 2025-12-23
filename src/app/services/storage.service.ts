@@ -22,9 +22,9 @@ export class StorageService {
       const db = await this.openDatabase();
       const transaction = db.transaction(['handles'], 'readwrite');
       const store = transaction.objectStore('handles');
-      
+
       await store.put(handle, this.STORAGE_KEYS.DIRECTORY_HANDLE);
-      
+
       db.close();
     } catch (error) {
       console.error('Error guardando handle de directorio:', error);
@@ -39,16 +39,16 @@ export class StorageService {
       const db = await this.openDatabase();
       const transaction = db.transaction(['handles'], 'readonly');
       const store = transaction.objectStore('handles');
-      
+
       const request = store.get(this.STORAGE_KEYS.DIRECTORY_HANDLE);
-      
+
       const handle = await new Promise<FileSystemDirectoryHandle | null>((resolve, reject) => {
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-      
+
       db.close();
-      
+
       if (handle) {
         // Verificar si aún tenemos permisos
         const permission = await this.verifyPermission(handle);
@@ -56,7 +56,7 @@ export class StorageService {
           return handle;
         }
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error recuperando handle de directorio:', error);
@@ -70,20 +70,24 @@ export class StorageService {
   private async verifyPermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
     try {
       const options = { mode: 'read' } as any;
-      
+
       // Verificar permisos actuales
       if ((await (handle as any).queryPermission(options)) === 'granted') {
         return true;
       }
-      
+
       // Solicitar permisos si no los tenemos
       if ((await (handle as any).requestPermission(options)) === 'granted') {
         return true;
       }
-      
+
       return false;
     } catch (error) {
-      console.error('Error verificando permisos:', error);
+      // Error esperado: Los navegadores requieren interacción del usuario para verificar permisos
+      // Solo logueamos si no es el error esperado de "User activation required"
+      if (error instanceof Error && !error.message.includes('User activation')) {
+        console.error('Error verificando permisos:', error);
+      }
       return false;
     }
   }
@@ -96,9 +100,9 @@ export class StorageService {
       const db = await this.openDatabase();
       const transaction = db.transaction(['handles'], 'readwrite');
       const store = transaction.objectStore('handles');
-      
+
       await store.delete(this.STORAGE_KEYS.DIRECTORY_HANDLE);
-      
+
       db.close();
     } catch (error) {
       console.error('Error eliminando handle de directorio:', error);
@@ -152,7 +156,7 @@ export class StorageService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Crear object store para handles si no existe
         if (!db.objectStoreNames.contains('handles')) {
           db.createObjectStore('handles');

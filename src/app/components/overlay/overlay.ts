@@ -36,7 +36,7 @@ export class OverlayComponent implements OnInit, OnDestroy {
     this.weatherSubscription = this.weatherService.weatherData$.subscribe(data => {
       this.weatherData = data;
     });
-    
+
     this.weatherErrorSubscription = this.weatherService.error$.subscribe(error => {
       this.weatherError = error;
     });

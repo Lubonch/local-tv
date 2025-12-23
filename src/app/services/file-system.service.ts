@@ -4,7 +4,7 @@ export interface VideoFile {
   file: File;
   name: string;
   path: string;
-  url: string;
+  url?: string; // Opcional - usado solo para compatibilidad
 }
 
 @Injectable({
@@ -13,7 +13,7 @@ export interface VideoFile {
 export class FileSystemService {
   private directoryHandle: FileSystemDirectoryHandle | null = null;
   private readonly VIDEO_EXTENSIONS = [
-    '.mp4', '.mkv', '.webm', '.avi', '.mov', 
+    '.mp4', '.mkv', '.webm', '.avi', '.mov',
     '.m4v', '.wmv', '.flv', '.ogv', '.3gp'
   ];
 
@@ -43,15 +43,18 @@ export class FileSystemService {
   /**
    * Escanea recursivamente la carpeta y subcarpetas buscando archivos de video
    */
-  async scanForVideos(dirHandle?: FileSystemDirectoryHandle): Promise<VideoFile[]> {
+  async scanForVideos(
+    dirHandle?: FileSystemDirectoryHandle,
+    progressCallback?: (current: number, total: number) => void
+  ): Promise<VideoFile[]> {
     const handle = dirHandle || this.directoryHandle;
-    
+
     if (!handle) {
       throw new Error('No hay carpeta seleccionada');
     }
 
     const videos: VideoFile[] = [];
-    await this.scanDirectory(handle, videos, '');
+    await this.scanDirectory(handle, videos, '', progressCallback);
     return videos;
   }
 
@@ -59,9 +62,10 @@ export class FileSystemService {
    * Función recursiva para escanear directorios
    */
   private async scanDirectory(
-    dirHandle: FileSystemDirectoryHandle, 
-    videos: VideoFile[], 
-    currentPath: string
+    dirHandle: FileSystemDirectoryHandle,
+    videos: VideoFile[],
+    currentPath: string,
+    progressCallback?: (current: number, total: number) => void
   ): Promise<void> {
     try {
       for await (const entry of dirHandle.values()) {
@@ -72,18 +76,23 @@ export class FileSystemService {
           if (this.isVideoFile(entry.name)) {
             const fileHandle = entry as FileSystemFileHandle;
             const file = await fileHandle.getFile();
-            
+
+            // No crear blob URL - dejar que el navegador haga streaming directo
             videos.push({
               file: file,
               name: entry.name,
-              path: path,
-              url: URL.createObjectURL(file)
+              path: path
             });
+
+            // Notificar progreso
+            if (progressCallback) {
+              progressCallback(videos.length, videos.length);
+            }
           }
         } else if (entry.kind === 'directory') {
           // Escanear recursivamente subdirectorios
           const subDirHandle = entry as FileSystemDirectoryHandle;
-          await this.scanDirectory(subDirHandle, videos, path);
+          await this.scanDirectory(subDirHandle, videos, path, progressCallback);
         }
       }
     } catch (error) {

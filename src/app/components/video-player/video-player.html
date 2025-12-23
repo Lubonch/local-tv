@@ -1,5 +1,5 @@
-<div class="video-container" 
-     (keydown)="onKeyPress($event)" 
+<div class="video-container"
+     (keydown)="onKeyPress($event)"
      (mousemove)="onMouseMove()"
      (mouseenter)="onMouseEnter()"
      (mouseleave)="onMouseLeave()"
@@ -7,7 +7,7 @@
   @if (currentVideo) {
     <video
       #videoElement
-      [src]="currentVideo.url"
+      [src]="currentVideoUrl"
       (ended)="onVideoEnded()"
       (error)="onVideoError($event)"
       (loadeddata)="onVideoLoaded()"
@@ -36,4 +36,7 @@
       </button>
     </div>
   }
+
+  <!-- Overlay con hora y temperatura -->
+  <app-overlay></app-overlay>
 </div>

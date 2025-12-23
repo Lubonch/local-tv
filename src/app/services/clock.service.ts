@@ -55,12 +55,12 @@ export class ClockService {
   formatTime(date: Date, includeSeconds: boolean = true): string {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
-    
+
     if (includeSeconds) {
       const seconds = date.getSeconds().toString().padStart(2, '0');
       return `${hours}:${minutes}:${seconds}`;
     }
-    
+
     return `${hours}:${minutes}`;
   }
 
@@ -69,14 +69,14 @@ export class ClockService {
    */
   formatDate(date: Date): string {
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    
+
     const dayName = days[date.getDay()];
     const day = date.getDate();
     const month = months[date.getMonth()];
     const year = date.getFullYear();
-    
+
     return `${dayName}, ${day} de ${month} de ${year}`;
   }
 }

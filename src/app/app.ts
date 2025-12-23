@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FolderSelectorComponent } from './components/folder-selector/folder-selector';
 import { VideoPlayerComponent } from './components/video-player/video-player';
-import { OverlayComponent } from './components/overlay/overlay';
 import { PlaylistService } from './services/playlist.service';
 
 @Component({
@@ -10,13 +9,12 @@ import { PlaylistService } from './services/playlist.service';
   imports: [
     CommonModule,
     FolderSelectorComponent,
-    VideoPlayerComponent,
-    OverlayComponent
+    VideoPlayerComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   showFolderSelector: boolean = true;
 
   constructor(private playlistService: PlaylistService) {}

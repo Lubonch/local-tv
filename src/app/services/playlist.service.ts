@@ -9,7 +9,7 @@ export class PlaylistService {
   private videos: VideoFile[] = [];
   private currentIndex: number = -1;
   private playedIndices: number[] = [];
-  
+
   private currentVideoSubject = new BehaviorSubject<VideoFile | null>(null);
   public currentVideo$: Observable<VideoFile | null> = this.currentVideoSubject.asObservable();
 
@@ -32,7 +32,7 @@ export class PlaylistService {
     this.currentIndex = -1;
     this.playedIndices = [];
     this.playlistLoadedSubject.next(true);
-    
+
     console.log(`Playlist cargada con ${this.videos.length} videos`);
   }
 
@@ -72,9 +72,9 @@ export class PlaylistService {
 
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
-    
+
     console.log(`Reproduciendo: ${video.name} (${this.playedIndices.length}/${this.videos.length})`);
-    
+
     return video;
   }
 
@@ -88,14 +88,14 @@ export class PlaylistService {
 
     // Remover el índice actual
     this.playedIndices.pop();
-    
+
     // Obtener el anterior
     const previousIndex = this.playedIndices[this.playedIndices.length - 1];
     this.currentIndex = previousIndex;
 
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
-    
+
     return video;
   }
 

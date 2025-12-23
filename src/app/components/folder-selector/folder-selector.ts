@@ -14,6 +14,8 @@ export class FolderSelectorComponent implements OnInit {
   @Output() folderSelected = new EventEmitter<void>();
 
   isLoading: boolean = false;
+  loadingProgress: number = 0;
+  loadingMessage: string = 'Cargando...';
   isSupported: boolean = true;
   error: string | null = null;
   videoCount: number = 0;
@@ -43,17 +45,38 @@ export class FolderSelectorComponent implements OnInit {
   private async tryLoadSavedFolder(): Promise<void> {
     try {
       this.isLoading = true;
-      const savedHandle = await this.storageService.getDirectoryHandle();
+      this.loadingProgress = 10;
+      this.loadingMessage = 'Buscando carpeta guardada...';
+
+      // Timeout de seguridad: si toma más de 3 segundos, mostrar selector
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(() => {
+          resolve(null);
+        }, 3000); // Reducido a 3 segundos
+      });
+
+      const savedHandle = await Promise.race([
+        this.storageService.getDirectoryHandle(),
+        timeoutPromise
+      ]);
 
       if (savedHandle) {
-        console.log('Carpeta guardada encontrada, cargando videos...');
+        this.loadingProgress = 30;
+        this.loadingMessage = 'Escaneando videos...';
         this.fileSystemService.setDirectoryHandle(savedHandle);
         await this.loadVideosFromFolder();
+      } else {
+        // No hay carpeta guardada o timeout - limpiar estado
+        this.isLoading = false;
+        this.loadingProgress = 0;
       }
     } catch (error) {
-      console.log('No se pudo cargar la carpeta guardada:', error);
-    } finally {
+      console.error('Error cargando carpeta guardada:', error);
+      // Si hay error, limpiar el storage y mostrar el selector
+      await this.storageService.clearDirectoryHandle();
       this.isLoading = false;
+      this.loadingProgress = 0;
+      this.error = null; // Limpiar cualquier error previo
     }
   }
 
@@ -63,24 +86,32 @@ export class FolderSelectorComponent implements OnInit {
   async onSelectFolder(): Promise<void> {
     try {
       this.isLoading = true;
+      this.loadingProgress = 0;
+      this.loadingMessage = 'Seleccionando carpeta...';
       this.error = null;
 
       const handle = await this.fileSystemService.selectFolder();
 
       if (handle) {
+        this.loadingProgress = 20;
+        this.loadingMessage = 'Guardando permisos...';
         // Guardar el handle para uso futuro
         await this.storageService.saveDirectoryHandle(handle);
-        
+
+        this.loadingProgress = 30;
+        this.loadingMessage = 'Escaneando videos...';
         // Cargar videos
         await this.loadVideosFromFolder();
       } else {
         this.error = 'No se seleccionó ninguna carpeta';
+        this.isLoading = false;
+        this.loadingProgress = 0;
       }
     } catch (error: any) {
       console.error('Error seleccionando carpeta:', error);
       this.error = error.message || 'Error al seleccionar la carpeta';
-    } finally {
       this.isLoading = false;
+      this.loadingProgress = 0;
     }
   }
 
@@ -89,24 +120,39 @@ export class FolderSelectorComponent implements OnInit {
    */
   private async loadVideosFromFolder(): Promise<void> {
     try {
-      const videos = await this.fileSystemService.scanForVideos();
+      const videos = await this.fileSystemService.scanForVideos(
+        undefined,
+        (current, total) => {
+          // Actualizar progreso: 30% a 90% durante el escaneo
+          this.loadingProgress = 30 + Math.floor((current / Math.max(current, 1)) * 60);
+          this.loadingMessage = `Encontrados ${current} videos...`;
+        }
+      );
+
       this.videoCount = videos.length;
+      this.loadingProgress = 95;
 
       if (videos.length === 0) {
         this.error = 'No se encontraron videos en la carpeta seleccionada';
+        this.isLoading = false;
+        this.loadingProgress = 0;
         return;
       }
 
       console.log(`Se encontraron ${videos.length} videos`);
+      this.loadingMessage = 'Cargando playlist...';
 
       // Cargar videos en la playlist
       this.playlistService.loadPlaylist(videos);
+      this.loadingProgress = 100;
 
       // Emitir evento de carpeta seleccionada
       this.folderSelected.emit();
     } catch (error: any) {
       console.error('Error cargando videos:', error);
       this.error = error.message || 'Error al cargar videos';
+      this.isLoading = false;
+      this.loadingProgress = 0;
     }
   }
 
@@ -118,5 +164,16 @@ export class FolderSelectorComponent implements OnInit {
     this.playlistService.clear();
     this.videoCount = 0;
     await this.onSelectFolder();
+  }
+
+  /**
+   * Cancela la carga actual y limpia el storage
+   */
+  async cancelLoading(): Promise<void> {
+    this.isLoading = false;
+    this.loadingProgress = 0;
+    this.loadingMessage = 'Cargando...';
+    await this.storageService.clearDirectoryHandle();
+    this.error = null;
   }
 }
