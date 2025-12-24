@@ -14,7 +14,7 @@ export interface MKVTrack {
   providedIn: 'root'
 })
 export class MkvHandlerService {
-  
+
   private decoder = new Decoder();
   private currentFile: File | null = null;
   private tracks: MKVTrack[] = [];
@@ -23,43 +23,43 @@ export class MkvHandlerService {
     console.log('🎬 Parseando archivo MKV:', file.name);
     this.currentFile = file;
     this.tracks = [];
-    
+
     try {
       // Leer los primeros 5MB para obtener el header
       const headerSize = Math.min(5 * 1024 * 1024, file.size);
       const headerChunk = file.slice(0, headerSize);
       const buffer = await headerChunk.arrayBuffer();
-      
+
       const elms = this.decoder.decode(buffer);
-      
+
       console.log('📊 Elementos EBML decodificados:', elms.length);
-      
+
       // Parsear tracks del resultado
       this.parseTracks(elms);
-      
+
       console.log('✅ Tracks detectados:', this.tracks);
       return this.tracks;
-      
+
     } catch (error) {
       console.error('❌ Error parseando MKV:', error);
       return [];
     }
   }
-  
+
   private parseTracks(elements: EBMLElementDetail[]): void {
     let inTracks = false;
     let currentTrack: Partial<MKVTrack> = {};
     let trackDepth = 0;
-    
+
     for (const elm of elements) {
       // Detectar inicio de sección Tracks
       if (elm.type === 'm' && elm.name === 'Tracks') {
         inTracks = elm.isEnd === false;
         continue;
       }
-      
+
       if (!inTracks) continue;
-      
+
       // Detectar TrackEntry
       if (elm.type === 'm' && elm.name === 'TrackEntry') {
         if (elm.isEnd === false) {
@@ -76,10 +76,10 @@ export class MkvHandlerService {
         }
         continue;
       }
-      
+
       // Solo procesar elementos dentro de TrackEntry
       if (trackDepth === 0) continue;
-      
+
       // Parsear propiedades del track
       switch (elm.name) {
         case 'TrackNumber':
@@ -115,21 +115,21 @@ export class MkvHandlerService {
       }
     }
   }
-  
+
   getAudioTracks(): MKVTrack[] {
     return this.tracks.filter(t => t.trackType === 2);
   }
-  
+
   getSubtitleTracks(): MKVTrack[] {
     return this.tracks.filter(t => t.trackType === 17);
   }
-  
+
   getTrackLabel(track: MKVTrack): string {
     if (track.name) return track.name;
     if (track.language) return this.getLanguageName(track.language);
     return `Track ${track.trackNumber}`;
   }
-  
+
   private getLanguageName(code: string): string {
     const languages: { [key: string]: string } = {
       'eng': 'English',
@@ -145,7 +145,7 @@ export class MkvHandlerService {
       'ara': 'العربية',
       'und': 'Desconocido'
     };
-    
+
     return languages[code] || code.toUpperCase();
   }
 }
