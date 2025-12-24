@@ -64,6 +64,11 @@ export class OverlayComponent implements OnInit, OnDestroy {
       return `🎄 ${time}`;
     }
 
+    // Agregar emoji de año nuevo el 31 de diciembre y 1 de enero
+    if ((month === 12 && day === 31) || (month === 1 && day === 1)) {
+      return `🎆 ${time}`;
+    }
+
     return time;
   }
 
