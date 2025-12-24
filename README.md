@@ -2,6 +2,8 @@
 
 Tu canal personal de videos con overlay de hora y clima, como los canales de TV.
 
+Última actualización: Diciembre 2025
+
 ---
 
 ## ¿Qué es esto?
