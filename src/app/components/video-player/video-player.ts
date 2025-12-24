@@ -7,11 +7,10 @@ import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
-import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -36,10 +35,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   isMuted: boolean = false;
   private readonly VOLUME_STORAGE_KEY = 'video-volume';
   private readonly MUTE_STORAGE_KEY = 'video-muted';
-
-  subtitles: SubtitleTrack[] = [];
-  currentSubtitleIndex: number = -1;
-  private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
   constructor(
     private playlistService: PlaylistService,
@@ -126,7 +121,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
-      this.detectTracks();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -228,11 +222,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'M':
         event.preventDefault();
         this.onMuteToggle();
-        break;
-      case 'c':
-      case 'C':
-        event.preventDefault();
-        this.toggleSubtitles();
         break;
       case 'j':
       case 'J':
@@ -352,69 +341,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   private adjustVolume(delta: number): void {
     const newVolume = Math.max(0, Math.min(100, this.volume + delta));
     this.onVolumeChange(newVolume);
-  }
-
-  private detectSubtitles(): void {
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    this.subtitles = [];
-    const textTracks = video.textTracks;
-
-    for (let i = 0; i < textTracks.length; i++) {
-      const track = textTracks[i];
-      this.subtitles.push({
-        index: i,
-        label: track.label || track.language || `Subtítulo ${i + 1}`,
-        language: track.language,
-        kind: (track.kind || 'subtitles') as 'subtitles' | 'captions'
-      });
-    }
-
-    if (this.subtitles.length === 0 && this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
-      console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a subtítulos embebidos en archivos MKV.');
-      console.warn('📝 SOLUCIÓN: Extrae los subtítulos a archivos .srt con MKVToolNix o FFmpeg.');
-      console.warn('   Ejemplo: ffmpeg -i "' + this.currentVideo.name + '" -map 0:s:0 subtitles.srt');
-    }
-
-    this.loadSubtitlePreference();
-  }
-
-  private detectTracks(): void {
-    this.detectSubtitles();
-  }
-
-  onSubtitleChange(index: number): void {
-    this.currentSubtitleIndex = index;
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    const textTracks = video.textTracks;
-    for (let i = 0; i < textTracks.length; i++) {
-      textTracks[i].mode = i === index ? 'showing' : 'hidden';
-    }
-
-    localStorage.setItem(this.SUBTITLE_STORAGE_KEY, index.toString());
-  }
-
-  private toggleSubtitles(): void {
-    if (this.subtitles.length === 0) return;
-
-    if (this.currentSubtitleIndex === -1 && this.subtitles.length > 0) {
-      this.onSubtitleChange(0);
-    } else {
-      this.onSubtitleChange(-1);
-    }
-  }
-
-  private loadSubtitlePreference(): void {
-    const saved = localStorage.getItem(this.SUBTITLE_STORAGE_KEY);
-    if (saved) {
-      const index = parseInt(saved);
-      if (index >= -1 && index < this.subtitles.length) {
-        this.onSubtitleChange(index);
-      }
-    }
   }
 }
 
