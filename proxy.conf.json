@@ -1,0 +1,11 @@
+{
+  "/api/invidious": {
+    "target": "https://inv.nadeko.net",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/invidious": "/api/v1"
+    },
+    "logLevel": "debug"
+  }
+}
