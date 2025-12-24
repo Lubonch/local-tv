@@ -74,6 +74,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.error = null;
       this.isLoading = true;
 
+      // Reset volume to 100% when changing video
+      this.onVolumeChange(100);
+
       this.preloadNextVideo();
     } else {
       if (this.errorCount >= this.maxConsecutiveErrors) {
@@ -339,7 +342,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private adjustVolume(delta: number): void {
-    const newVolume = Math.max(0, Math.min(100, this.volume + delta));
+    const newVolume = Math.max(0, Math.min(400, this.volume + delta));
     this.onVolumeChange(newVolume);
   }
 }
