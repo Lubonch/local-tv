@@ -60,7 +60,15 @@ export class WeatherService {
       this.errorSubject.next(null);
     } catch (error) {
       console.error('Error obteniendo datos del clima:', error);
-      this.errorSubject.next('No se pudo obtener el clima');
+      const fallbackData: WeatherData = {
+        temperature: 999,
+        feelsLike: 999,
+        description: 'No disponible',
+        location: 'Tu ubicación',
+        weatherCode: -1
+      };
+      this.weatherDataSubject.next(fallbackData);
+      this.errorSubject.next(null);
     }
   }
 
@@ -106,8 +114,8 @@ export class WeatherService {
       }
 
       const weatherData: WeatherData = {
-        temperature: Math.round(weatherResponse.current.temperature_2m),
-        feelsLike: Math.round(weatherResponse.current.apparent_temperature),
+        temperature: Math.round(weatherResponse.current.temperature_2m) || 999,
+        feelsLike: Math.round(weatherResponse.current.apparent_temperature) || 999,
         description: this.getWeatherDescription(weatherResponse.current.weather_code),
         location: location,
         weatherCode: weatherResponse.current.weather_code
@@ -116,7 +124,16 @@ export class WeatherService {
       return weatherData;
     } catch (error) {
       console.error('Error obteniendo datos del clima:', error);
-      throw error;
+
+      const fallbackData: WeatherData = {
+        temperature: 999,
+        feelsLike: 999,
+        description: 'No disponible',
+        location: 'Tu ubicación',
+        weatherCode: -1
+      };
+
+      return fallbackData;
     }
   }
 

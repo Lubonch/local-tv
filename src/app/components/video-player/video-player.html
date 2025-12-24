@@ -33,7 +33,33 @@
       <button class="change-folder-btn" (click)="onChangeFolder()">
         Cambiar Carpeta
       </button>
+      <app-volume-control
+        [volume]="volume"
+        [isMuted]="isMuted"
+        (volumeChange)="onVolumeChange($event)"
+        (muteToggle)="onMuteToggle()">
+      </app-volume-control>
+      <app-subtitle-control
+        [subtitles]="subtitles"
+        [currentSubtitleIndex]="currentSubtitleIndex"
+        (subtitleChange)="onSubtitleChange($event)">
+      </app-subtitle-control>
     </div>
+  }
+
+  @if (showControls && currentVideo) {
+    <app-video-info-overlay
+      [videoName]="currentVideo.name"
+      [showInfo]="showControls">
+    </app-video-info-overlay>
+  }
+
+  @if (showControls && currentVideo) {
+    <app-video-progress-bar
+      [currentTime]="currentTime"
+      [duration]="duration"
+      (seek)="onSeek($event)">
+    </app-video-progress-bar>
   }
 
   <app-overlay></app-overlay>

@@ -81,3 +81,12 @@
     transform: translateY(0);
   }
 }
+
+app-video-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 950;
+  animation: fadeInControls 0.3s ease-in;
+}

@@ -1,17 +1,21 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
 import { CommonModule } from '@angular/common';
 import { OverlayComponent } from '../overlay/overlay';
+import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
+import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
+import { VolumeControlComponent } from '../volume-control/volume-control';
+import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
-export class VideoPlayerComponent implements OnInit, OnDestroy {
+export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
 
   currentVideo: VideoFile | null = null;
@@ -24,6 +28,19 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   showControls: boolean = false;
   private hideControlsTimeout: any;
 
+  currentTime: number = 0;
+  duration: number = 0;
+  private updateInterval: any;
+
+  volume: number = 100;
+  isMuted: boolean = false;
+  private readonly VOLUME_STORAGE_KEY = 'video-volume';
+  private readonly MUTE_STORAGE_KEY = 'video-muted';
+
+  subtitles: SubtitleTrack[] = [];
+  currentSubtitleIndex: number = -1;
+  private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
+
   constructor(
     private playlistService: PlaylistService,
     private storageService: StorageService
@@ -34,10 +51,20 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       this.currentVideo = video;
     });
 
+    this.loadVolume();
     this.loadNextVideo();
   }
 
+  ngAfterViewInit(): void {
+  }
+
   ngOnDestroy(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+    if (this.hideControlsTimeout) {
+      clearTimeout(this.hideControlsTimeout);
+    }
   }
 
   loadNextVideo(): void {
@@ -94,13 +121,39 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   onVideoLoaded(): void {
     this.isLoading = false;
     this.errorCount = 0;
-    console.log('Video cargado y listo:', this.currentVideo?.name);
 
     const video = this.videoElement?.nativeElement;
     if (video) {
+      this.duration = video.duration;
+      this.applyVolume();
+      this.detectTracks();
+      this.startTimeUpdate();
+
       video.play().catch(error => {
         console.error('Error al reproducir video:', error);
       });
+    }
+  }
+
+  private startTimeUpdate(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+
+    this.updateInterval = setInterval(() => {
+      const video = this.videoElement?.nativeElement;
+      if (video && !isNaN(video.currentTime)) {
+        this.currentTime = video.currentTime;
+        this.duration = video.duration || 0;
+      }
+    }, 100);
+  }
+
+  onSeek(time: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && isFinite(time)) {
+      video.currentTime = time;
+      this.currentTime = time;
     }
   }
 
@@ -137,24 +190,95 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   }
 
   onKeyPress(event: KeyboardEvent): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
     switch(event.key) {
       case ' ':
         event.preventDefault();
         this.togglePlayPause();
         break;
       case 'ArrowRight':
-        event.preventDefault();
-        this.loadNextVideo();
+        if (event.shiftKey) {
+          event.preventDefault();
+          this.loadNextVideo();
+        } else {
+          event.preventDefault();
+          this.seek(5);
+        }
         break;
       case 'ArrowLeft':
+        if (event.shiftKey) {
+          event.preventDefault();
+          this.loadPreviousVideo();
+        } else {
+          event.preventDefault();
+          this.seek(-5);
+        }
+        break;
+      case 'ArrowUp':
         event.preventDefault();
-        this.loadPreviousVideo();
+        this.adjustVolume(5);
+        break;
+      case 'ArrowDown':
+        event.preventDefault();
+        this.adjustVolume(-5);
+        break;
+      case 'm':
+      case 'M':
+        event.preventDefault();
+        this.onMuteToggle();
+        break;
+      case 'c':
+      case 'C':
+        event.preventDefault();
+        this.toggleSubtitles();
+        break;
+      case 'j':
+      case 'J':
+        event.preventDefault();
+        this.seek(-10);
+        break;
+      case 'l':
+      case 'L':
+        event.preventDefault();
+        this.seek(10);
+        break;
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        event.preventDefault();
+        const percentage = parseInt(event.key) * 10;
+        this.seekToPercentage(percentage);
         break;
       case 'f':
       case 'F':
         event.preventDefault();
         this.enterFullscreen();
         break;
+    }
+  }
+
+  private seek(seconds: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && this.duration > 0) {
+      const newTime = Math.max(0, Math.min(video.currentTime + seconds, this.duration));
+      video.currentTime = newTime;
+    }
+  }
+
+  private seekToPercentage(percentage: number): void {
+    const video = this.videoElement?.nativeElement;
+    if (video && this.duration > 0) {
+      const newTime = (this.duration * percentage) / 100;
+      video.currentTime = newTime;
     }
   }
 
@@ -186,6 +310,112 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.currentVideoUrl);
     }
     window.location.reload();
+  }
+
+  onVolumeChange(newVolume: number): void {
+    this.volume = newVolume;
+    this.isMuted = newVolume === 0;
+    this.applyVolume();
+    this.saveVolume();
+  }
+
+  onMuteToggle(): void {
+    this.isMuted = !this.isMuted;
+    this.applyVolume();
+    localStorage.setItem(this.MUTE_STORAGE_KEY, JSON.stringify(this.isMuted));
+  }
+
+  private loadVolume(): void {
+    const savedVolume = localStorage.getItem(this.VOLUME_STORAGE_KEY);
+    const savedMute = localStorage.getItem(this.MUTE_STORAGE_KEY);
+
+    if (savedVolume) {
+      this.volume = parseInt(savedVolume);
+    }
+
+    if (savedMute) {
+      this.isMuted = JSON.parse(savedMute);
+    }
+  }
+
+  private saveVolume(): void {
+    localStorage.setItem(this.VOLUME_STORAGE_KEY, this.volume.toString());
+  }
+
+  private applyVolume(): void {
+    const video = this.videoElement?.nativeElement;
+    if (video) {
+      video.volume = this.isMuted ? 0 : this.volume / 100;
+    }
+  }
+
+  private adjustVolume(delta: number): void {
+    const newVolume = Math.max(0, Math.min(100, this.volume + delta));
+    this.onVolumeChange(newVolume);
+  }
+
+  private detectSubtitles(): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    this.subtitles = [];
+    const textTracks = video.textTracks;
+
+    for (let i = 0; i < textTracks.length; i++) {
+      const track = textTracks[i];
+      this.subtitles.push({
+        index: i,
+        label: track.label || track.language || `Subtítulo ${i + 1}`,
+        language: track.language,
+        kind: (track.kind || 'subtitles') as 'subtitles' | 'captions'
+      });
+    }
+
+    // Mostrar mensaje sobre limitación de MKV solo si no hay subtítulos y el archivo es MKV
+    if (this.subtitles.length === 0 && this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
+      console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a subtítulos embebidos en archivos MKV.');
+      console.warn('📝 SOLUCIÓN: Extrae los subtítulos a archivos .srt con MKVToolNix o FFmpeg.');
+      console.warn('   Ejemplo: ffmpeg -i "' + this.currentVideo.name + '" -map 0:s:0 subtitles.srt');
+    }
+
+    this.loadSubtitlePreference();
+  }
+
+  private detectTracks(): void {
+    this.detectSubtitles();
+  }
+
+  onSubtitleChange(index: number): void {
+    this.currentSubtitleIndex = index;
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    const textTracks = video.textTracks;
+    for (let i = 0; i < textTracks.length; i++) {
+      textTracks[i].mode = i === index ? 'showing' : 'hidden';
+    }
+
+    localStorage.setItem(this.SUBTITLE_STORAGE_KEY, index.toString());
+  }
+
+  private toggleSubtitles(): void {
+    if (this.subtitles.length === 0) return;
+
+    if (this.currentSubtitleIndex === -1 && this.subtitles.length > 0) {
+      this.onSubtitleChange(0);
+    } else {
+      this.onSubtitleChange(-1);
+    }
+  }
+
+  private loadSubtitlePreference(): void {
+    const saved = localStorage.getItem(this.SUBTITLE_STORAGE_KEY);
+    if (saved) {
+      const index = parseInt(saved);
+      if (index >= -1 && index < this.subtitles.length) {
+        this.onSubtitleChange(index);
+      }
+    }
   }
 }
 
