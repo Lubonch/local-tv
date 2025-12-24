@@ -41,7 +41,7 @@ export class YouTubeService {
       console.log(`Getting playlist from proxy: ${playlistId}`);
 
       // En desarrollo, usa el proxy. En producción, usa directamente la instancia
-      const apiUrl = environment.production 
+      const apiUrl = environment.production
         ? `https://inv.nadeko.net/api/v1/playlists/${playlistId}`
         : `/api/invidious/playlists/${playlistId}`;
 
