@@ -62,7 +62,7 @@ export class PlaylistService {
     }
 
     // Verificar si toca corte comercial
-    if (this.adsConfig.enabled && 
+    if (this.adsConfig.enabled &&
         this.adsVideos.length > 0 &&
         this.normalVideosPlayed > 0 &&
         this.normalVideosPlayed % this.adsConfig.frequency === 0) {
@@ -113,7 +113,7 @@ export class PlaylistService {
 
     // Shuffle ads disponibles
     const availableAds = [...this.adsVideos];
-    
+
     // Evitar repetir los últimos ads usados si es posible
     const filteredAds = this.lastAdIndices.length > 0 && availableAds.length > this.adsConfig.maxAdsPerBreak
       ? availableAds.filter((_, index) => !this.lastAdIndices.includes(index))
@@ -121,7 +121,7 @@ export class PlaylistService {
 
     // Shuffle
     const shuffled = filteredAds.sort(() => Math.random() - 0.5);
-    
+
     // Tomar N primeros
     const selected = shuffled.slice(0, Math.min(count, shuffled.length));
 

@@ -166,16 +166,16 @@ export class FolderSelectorComponent implements OnInit {
   async onSelectAdsFolder(): Promise<void> {
     try {
       this.error = null;
-      
+
       const handle = await this.fileSystemService.selectFolder();
 
       if (handle) {
         this.adsFolder = handle;
         await this.storageService.saveAdsFolder(handle);
-        
+
         // Escanear videos de ads
         const adsVideos = await this.fileSystemService.scanForVideos(handle);
-        
+
         if (adsVideos.length === 0) {
           this.error = 'La carpeta de comerciales no contiene videos';
           this.adsFolder = null;
@@ -201,7 +201,7 @@ export class FolderSelectorComponent implements OnInit {
 
     try {
       const adsVideos = await this.fileSystemService.scanForVideos(this.adsFolder);
-      
+
       const adsConfig: AdsConfig = {
         enabled: this.adsEnabled,
         frequency: this.adsFrequency,

@@ -20,11 +20,11 @@
           <!-- Sección de Comerciales (Opcional) -->
           <div class="ads-section">
             <h3 class="ads-title">Comerciales (Opcional)</h3>
-            
+
             <div class="ads-checkbox-container">
               <label class="checkbox-label">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   [(ngModel)]="adsEnabled"
                   (change)="onAdsEnabledChange()"
                   class="ads-checkbox"
@@ -38,10 +38,10 @@
                 <div class="ads-frequency-container">
                   <label class="frequency-label">
                     Cada cuántos videos:
-                    <input 
-                      type="number" 
-                      min="1" 
-                      max="10" 
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
                       [(ngModel)]="adsFrequency"
                       (change)="onAdsFrequencyChange()"
                       class="frequency-input"
