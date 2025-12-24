@@ -59,12 +59,10 @@ export class OverlayComponent implements OnInit, OnDestroy {
     const day = this.currentTime.getDate();
     const month = this.currentTime.getMonth() + 1; // getMonth() retorna 0-11
 
-    // Agregar emoji navideño el 24 y 25 de diciembre
     if (month === 12 && (day === 24 || day === 25)) {
       return `🎄 ${time}`;
     }
 
-    // Agregar emoji de año nuevo el 31 de diciembre y 1 de enero
     if ((month === 12 && day === 31) || (month === 1 && day === 1)) {
       return `🎆 ${time}`;
     }

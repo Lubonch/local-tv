@@ -21,7 +21,6 @@ export class FolderSelectorComponent implements OnInit {
   error: string | null = null;
   videoCount: number = 0;
 
-  // === ADS PROPERTIES ===
   adsEnabled: boolean = false;
   adsFolder: FileSystemDirectoryHandle | null = null;
   adsVideoCount: number = 0;
@@ -41,7 +40,6 @@ export class FolderSelectorComponent implements OnInit {
       return;
     }
 
-    // Cargar configuración de ads guardada
     const savedConfig = this.storageService.getAdsConfig();
     if (savedConfig) {
       this.adsEnabled = savedConfig.enabled;
@@ -145,7 +143,6 @@ export class FolderSelectorComponent implements OnInit {
       this.playlistService.loadPlaylist(videos);
       this.loadingProgress = 100;
 
-      // Cargar ads si están habilitados
       if (this.adsEnabled && this.adsVideoCount > 0) {
         await this.loadAdsPlaylist();
       }
@@ -161,8 +158,6 @@ export class FolderSelectorComponent implements OnInit {
     }
   }
 
-  // === ADS METHODS ===
-
   async onSelectAdsFolder(): Promise<void> {
     try {
       this.error = null;
@@ -173,7 +168,6 @@ export class FolderSelectorComponent implements OnInit {
         this.adsFolder = handle;
         await this.storageService.saveAdsFolder(handle);
 
-        // Escanear videos de ads
         const adsVideos = await this.fileSystemService.scanForVideos(handle);
 
         if (adsVideos.length === 0) {
@@ -220,18 +214,15 @@ export class FolderSelectorComponent implements OnInit {
 
   onAdsEnabledChange(): void {
     if (!this.adsEnabled) {
-      // Si se deshabilita, limpiar ads del playlist service
       this.playlistService.clearAds();
       this.storageService.clearAdsConfig();
     } else if (this.adsFolder && this.adsVideoCount > 0) {
-      // Si se habilita y ya hay carpeta, cargar ads
       this.loadAdsPlaylist();
     }
   }
 
   onAdsFrequencyChange(): void {
     if (this.adsEnabled && this.adsFolder && this.adsVideoCount > 0) {
-      // Actualizar configuración
       this.loadAdsPlaylist();
     }
   }

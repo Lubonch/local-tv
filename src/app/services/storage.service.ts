@@ -101,8 +101,6 @@ export class StorageService {
     return volume ? parseFloat(volume) : 1.0;
   }
 
-  // === ADS FOLDER METHODS ===
-
   async saveAdsFolder(handle: FileSystemDirectoryHandle): Promise<void> {
     try {
       const db = await this.openDatabase();

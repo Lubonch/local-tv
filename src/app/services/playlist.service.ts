@@ -10,7 +10,6 @@ export class PlaylistService {
   private currentIndex: number = -1;
   private playedIndices: number[] = [];
 
-  // === ADS PROPERTIES ===
   private adsVideos: VideoFile[] = [];
   private adsConfig: AdsConfig = {
     enabled: false,
@@ -53,7 +52,6 @@ export class PlaylistService {
   }
 
   getNextVideo(): VideoFile | null {
-    // Si hay ads en el bloque actual, devolver siguiente ad
     if (this.currentAdBlock.length > 0) {
       const ad = this.currentAdBlock.shift()!;
       this.currentVideoSubject.next(ad);
@@ -61,7 +59,6 @@ export class PlaylistService {
       return ad;
     }
 
-    // Verificar si toca corte comercial
     if (this.adsConfig.enabled &&
         this.adsVideos.length > 0 &&
         this.normalVideosPlayed > 0 &&
@@ -71,7 +68,6 @@ export class PlaylistService {
       return this.getNextVideo(); // Recursión para devolver primer ad
     }
 
-    // Video normal
     if (this.videos.length === 0) {
       return null;
     }
@@ -93,7 +89,6 @@ export class PlaylistService {
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
 
-    // Incrementar contador solo para videos normales
     this.normalVideosPlayed++;
 
     console.log(`Reproduciendo: ${video.name} (${this.playedIndices.length}/${this.videos.length}) - Videos normales: ${this.normalVideosPlayed}`);
@@ -105,30 +100,22 @@ export class PlaylistService {
     if (this.adsVideos.length === 0) {
       return [];
     }
-
-    // Cantidad random entre min y max configurado
     const count = Math.floor(
       Math.random() * (this.adsConfig.maxAdsPerBreak - this.adsConfig.minAdsPerBreak + 1)
     ) + this.adsConfig.minAdsPerBreak;
 
-    // Shuffle ads disponibles
     const availableAds = [...this.adsVideos];
 
-    // Evitar repetir los últimos ads usados si es posible
     const filteredAds = this.lastAdIndices.length > 0 && availableAds.length > this.adsConfig.maxAdsPerBreak
       ? availableAds.filter((_, index) => !this.lastAdIndices.includes(index))
       : availableAds;
 
-    // Shuffle
     const shuffled = filteredAds.sort(() => Math.random() - 0.5);
 
-    // Tomar N primeros
     const selected = shuffled.slice(0, Math.min(count, shuffled.length));
 
-    // Guardar índices para próximo bloque
     this.lastAdIndices = selected.map(ad => this.adsVideos.indexOf(ad));
 
-    // Marcar como ads
     return selected.map((ad, index) => ({
       ...ad,
       isAd: true,
@@ -181,8 +168,6 @@ export class PlaylistService {
     this.playlistLoadedSubject.next(false);
     this.clearAds();
   }
-
-  // === ADS METHODS ===
 
   loadAdsPlaylist(videos: VideoFile[], config: AdsConfig): void {
     this.adsVideos = [...videos];
