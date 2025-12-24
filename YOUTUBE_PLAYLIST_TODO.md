@@ -1,7 +1,7 @@
 # YouTube Playlist Support - Tareas Pendientes
 
 ## Contexto
-La rama `feature/youtube-playlist` contiene implementación básica para reproducir playlists de YouTube como alternativa a carpetas locales. Actualmente usa:
+La rama `feature/youtube-playlist` contiene implementación básica para reproducir playlists de YouTube como alternativa a carpetas locales(tiene que dar a elegir una u otra opcion, no reemplazarla en el codigo). Actualmente usa:
 - **Invidious API** para obtener lista de videos (sin API key necesaria)
 - **YouTube iframe embeds** para reproducción
 - **Timer de 5 minutos** como simulación de fin de video (temporal)
