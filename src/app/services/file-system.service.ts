@@ -6,6 +6,7 @@ export interface VideoFile {
   path: string;
   url?: string;
   isYouTube?: boolean;
+  duration?: number; // Duration in seconds
 }
 
 @Injectable({

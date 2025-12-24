@@ -6,14 +6,11 @@
      tabindex="0">
   @if (currentVideo) {
     @if (currentVideo.isYouTube) {
-      <iframe
+      <div
         #youtubePlayer
-        [src]="currentVideoUrl"
-        class="video-player youtube-player"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+        id="youtube-player"
+        class="video-player youtube-player">
+      </div>
     } @else {
       <video
         #videoElement

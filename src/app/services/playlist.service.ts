@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { VideoFile } from './file-system.service';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,7 @@ export class PlaylistService {
   private playlistLoadedSubject = new BehaviorSubject<boolean>(false);
   public playlistLoaded$: Observable<boolean> = this.playlistLoadedSubject.asObservable();
 
-  constructor() { }
+  constructor(private storageService: StorageService) { }
 
   loadPlaylist(videos: VideoFile[]): void {
     if (videos.length === 0) {
@@ -61,6 +62,11 @@ export class PlaylistService {
 
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
+
+    // Save index if it's a YouTube video
+    if (video.isYouTube) {
+      this.storageService.saveYouTubePlaylistIndex(this.currentIndex);
+    }
 
     console.log(`Reproduciendo: ${video.name} (${this.playedIndices.length}/${this.videos.length})`);
 
@@ -110,6 +116,8 @@ export class PlaylistService {
     this.playedIndices = [];
     this.currentVideoSubject.next(null);
     this.playlistLoadedSubject.next(false);
+    // Clear YouTube playlist data
+    this.storageService.clearYouTubePlaylist();
   }
 
   hasVideos(): boolean {

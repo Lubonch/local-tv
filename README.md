@@ -71,6 +71,33 @@ MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador
 
 **Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
+---
+
+## Reproducir Playlists de YouTube
+
+Además de carpetas locales, puedes reproducir playlists públicas de YouTube:
+
+1. Copia la URL de cualquier playlist pública de YouTube
+2. Pégala en el campo de entrada al iniciar la app
+3. Click en "Cargar Playlist"
+
+**Características:**
+- Usa Invidious API (sin necesidad de API key)
+- Detecta automáticamente el fin de cada video
+- Muestra la duración real de los videos
+- Guarda la última playlist cargada para continuar donde quedaste
+
+**Nota:** Si una instancia de Invidious falla, la app intentará automáticamente con otras instancias públicas. Si todas fallan, puedes intentar de nuevo más tarde o usar una carpeta local.
+
+**Ejemplo de playlist para testing:**
+```
+https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf
+```
+
+---
+
+## Formatos Soportados (Archivos Locales)
+
 ### Subtítulos
 
 Los subtítulos se detectan automáticamente desde:

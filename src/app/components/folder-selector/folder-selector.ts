@@ -38,8 +38,46 @@ export class FolderSelectorComponent implements OnInit {
       return;
     }
 
+    // Try to load saved YouTube playlist first
+    await this.tryLoadSavedYouTubePlaylist();
+
     this.isLoading = false;
     this.loadingProgress = 0;
+  }
+
+  private async tryLoadSavedYouTubePlaylist(): Promise<void> {
+    try {
+      const savedPlaylist = this.storageService.getYouTubePlaylist();
+      if (savedPlaylist && savedPlaylist.videos && savedPlaylist.videos.length > 0) {
+        const age = Date.now() - savedPlaylist.timestamp;
+        const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (age < maxAge) {
+          console.log('Found saved YouTube playlist, loading...');
+          this.youtubePlaylistUrl = savedPlaylist.url;
+          this.videoCount = savedPlaylist.videos.length;
+          
+          this.playlistService.loadPlaylist(savedPlaylist.videos);
+          
+          // Restore playback position if available
+          const savedIndex = this.storageService.getYouTubePlaylistIndex();
+          if (savedIndex !== null && savedIndex < savedPlaylist.videos.length) {
+            // The playlist service will handle setting the current index
+            console.log(`Resuming from video ${savedIndex + 1}/${savedPlaylist.videos.length}`);
+          }
+          
+          setTimeout(() => {
+            this.folderSelected.emit();
+          }, 500);
+        } else {
+          console.log('Saved YouTube playlist is too old, clearing...');
+          this.storageService.clearYouTubePlaylist();
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved YouTube playlist:', error);
+      this.storageService.clearYouTubePlaylist();
+    }
   }
 
   private async tryLoadSavedFolder(): Promise<void> {
@@ -188,10 +226,15 @@ export class FolderSelectorComponent implements OnInit {
         name: video.title,
         path: video.videoId,
         url: this.youtubeService.getEmbedUrl(video.videoId),
-        isYouTube: true
+        isYouTube: true,
+        duration: video.lengthSeconds
       }));
 
       this.playlistService.loadPlaylist(youtubeVideos);
+      
+      // Save playlist to localStorage
+      this.storageService.saveYouTubePlaylist(this.youtubePlaylistUrl, youtubeVideos);
+      
       this.loadingProgress = 100;
 
       setTimeout(() => {
