@@ -64,7 +64,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupYouTubeAPICallback(): void {
-    // Setup global callback for YouTube API
     window.onYouTubeIframeAPIReady = () => {
       console.log('YouTube IFrame API Ready');
       this.ytApiReady = true;
@@ -96,7 +95,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       try {
         this.ytPlayer.destroy();
       } catch (e) {
-        // Ignore errors on cleanup
       }
     }
   }
@@ -110,7 +108,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Check if API is already loaded
     if (window.YT && window.YT.Player) {
       this.ytApiReady = true;
       return;
@@ -126,7 +123,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   private initYouTubePlayer(videoId: string, duration?: number, retryCount: number = 0): void {
     const maxRetries = 50; // 5 seconds max wait (50 * 100ms)
     
-    // Wait for API to be ready
     if (!this.ytApiReady) {
       if (retryCount >= maxRetries) {
         console.warn('YouTube API failed to load, using fallback timer');
@@ -137,7 +133,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // Destroy existing player if any
     if (this.ytPlayer) {
       try {
         this.ytPlayer.destroy();
@@ -147,7 +142,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.ytPlayer = null;
     }
 
-    // Wait for iframe element to be available
     setTimeout(() => {
       const iframeElement = this.youtubePlayer?.nativeElement;
       if (!iframeElement) {
@@ -164,7 +158,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
               console.log('YouTube player ready');
               event.target.playVideo();
               
-              // Update duration if we have the player
               try {
                 const playerDuration = event.target.getDuration();
                 if (playerDuration > 0) {
@@ -182,7 +175,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.onVideoEnded();
               } else if (event.data === window.YT.PlayerState.PLAYING) {
                 console.log('YouTube video playing');
-                // Start time update for progress bar
                 this.startYouTubeTimeUpdate();
               }
             },
@@ -216,7 +208,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
             this.duration = this.ytPlayer.getDuration();
           }
         } catch (e) {
-          // Player might not be ready yet
         }
       }
     }, 100);
@@ -230,10 +221,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private startYouTubeVideoEndTimer(duration?: number): void {
-    // Limpiar timer anterior si existe
     this.clearYouTubeEndTimer();
 
-    // Use provided duration or default to 5 minutes as fallback
     const durationMs = duration ? duration * 1000 : 5 * 60 * 1000;
 
     this.youtubeEndTimer = setTimeout(() => {
@@ -245,7 +234,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   loadNextVideo(): void {
     const nextVideo = this.playlistService.getNextVideo();
     if (nextVideo) {
-      // Revocar URL anterior solo si es un blob local
       if (this.currentVideoUrl && typeof this.currentVideoUrl === 'string' && this.currentVideoUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentVideoUrl);
       }
@@ -253,32 +241,23 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.currentVideo = nextVideo;
 
       if (nextVideo.isYouTube && nextVideo.url) {
-        // Video de YouTube - Load YouTube API and initialize player
         this.loadYouTubeAPI();
-        
-        // Set duration from video metadata if available
+
         if (nextVideo.duration) {
           this.duration = nextVideo.duration;
           console.log(`YouTube video duration from metadata: ${nextVideo.duration}s`);
         }
-        
+
         this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(nextVideo.url);
         this.isLoading = false;
-        this.error = null;
+        this.error = null;        const videoId = nextVideo.path;
 
-        // Extract videoId from path
-        const videoId = nextVideo.path;
-        
-        // Initialize YouTube Player with API
         this.initYouTubePlayer(videoId, nextVideo.duration);
       } else if (nextVideo.file) {
-        // Video local - crear blob URL
         this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
         this.error = null;
         this.isLoading = true;
-      }
-
-      this.preloadNextVideo();
+      }      this.preloadNextVideo();
     } else {
       if (this.errorCount >= this.maxConsecutiveErrors) {
         this.error = 'Demasiados errores consecutivos. Verifica que los videos sean válidos.';
@@ -570,7 +549,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
 
-    // Mostrar mensaje sobre limitación de MKV solo si no hay subtítulos y el archivo es MKV
     if (this.subtitles.length === 0 && this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
       console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a subtítulos embebidos en archivos MKV.');
       console.warn('📝 SOLUCIÓN: Extrae los subtítulos a archivos .srt con MKVToolNix o FFmpeg.');

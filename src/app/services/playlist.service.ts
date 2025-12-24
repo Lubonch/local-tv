@@ -63,7 +63,6 @@ export class PlaylistService {
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
 
-    // Save index if it's a YouTube video
     if (video.isYouTube) {
       this.storageService.saveYouTubePlaylistIndex(this.currentIndex);
     }
@@ -116,7 +115,6 @@ export class PlaylistService {
     this.playedIndices = [];
     this.currentVideoSubject.next(null);
     this.playlistLoadedSubject.next(false);
-    // Clear YouTube playlist data
     this.storageService.clearYouTubePlaylist();
   }
 

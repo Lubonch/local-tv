@@ -38,7 +38,6 @@ export class FolderSelectorComponent implements OnInit {
       return;
     }
 
-    // Try to load saved YouTube playlist first
     await this.tryLoadSavedYouTubePlaylist();
 
     this.isLoading = false;
@@ -56,16 +55,14 @@ export class FolderSelectorComponent implements OnInit {
           console.log('Found saved YouTube playlist, loading...');
           this.youtubePlaylistUrl = savedPlaylist.url;
           this.videoCount = savedPlaylist.videos.length;
-          
+
           this.playlistService.loadPlaylist(savedPlaylist.videos);
-          
-          // Restore playback position if available
+
           const savedIndex = this.storageService.getYouTubePlaylistIndex();
           if (savedIndex !== null && savedIndex < savedPlaylist.videos.length) {
-            // The playlist service will handle setting the current index
             console.log(`Resuming from video ${savedIndex + 1}/${savedPlaylist.videos.length}`);
           }
-          
+
           setTimeout(() => {
             this.folderSelected.emit();
           }, 500);
@@ -220,7 +217,6 @@ export class FolderSelectorComponent implements OnInit {
       this.loadingProgress = 80;
       this.loadingMessage = 'Cargando playlist...';
 
-      // Convertir videos de YouTube a formato compatible con PlaylistService
       const youtubeVideos = videos.map(video => ({
         file: null as any, // No hay archivo físico
         name: video.title,
@@ -231,13 +227,10 @@ export class FolderSelectorComponent implements OnInit {
       }));
 
       this.playlistService.loadPlaylist(youtubeVideos);
-      
-      // Save playlist to localStorage
-      this.storageService.saveYouTubePlaylist(this.youtubePlaylistUrl, youtubeVideos);
-      
-      this.loadingProgress = 100;
 
-      setTimeout(() => {
+      this.storageService.saveYouTubePlaylist(this.youtubePlaylistUrl, youtubeVideos);
+
+      this.loadingProgress = 100;      setTimeout(() => {
         this.folderSelected.emit();
       }, 500);
 

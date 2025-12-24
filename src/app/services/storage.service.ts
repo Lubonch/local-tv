@@ -131,7 +131,6 @@ export class StorageService {
     localStorage.removeItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST_INDEX);
   }
 
-  // YouTube Playlist persistence methods
   saveYouTubePlaylist(playlistUrl: string, videos: VideoFile[]): void {
     try {
       const playlistData = {
