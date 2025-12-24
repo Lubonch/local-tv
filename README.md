@@ -89,13 +89,32 @@ Los subtítulos se detectan automáticamente desde:
 
 ## Deploy en GitHub Pages
 
+### Opción 1: GitHub Actions (automático)
 Ya está configurado. Solo haz push a `main`:
 
 ```bash
 git push origin main
 ```
 
-GitHub Actions se encarga del resto. Tu app estará en: `https://tu-usuario.github.io/local-tv`
+GitHub Actions se encarga del resto.
+
+### Opción 2: Deploy manual
+Para deploy manual, ejecuta:
+
+```bash
+npm run deploy
+git add docs/
+git commit -m "Deploy to GitHub Pages"
+git push origin main
+```
+
+### Configuración de GitHub Pages
+1. Ve a Settings > Pages en tu repositorio
+2. Selecciona "Deploy from a branch"
+3. Branch: `main`, Folder: `/docs`
+4. Save
+
+Tu app estará en: `https://tu-usuario.github.io/local-tv`
 
 ---
 
