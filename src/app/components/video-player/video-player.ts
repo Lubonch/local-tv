@@ -8,7 +8,6 @@ import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
 import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
-import { RandomModeIndicatorComponent } from '../random-mode-indicator/random-mode-indicator';
 import { AudioTrackControlComponent, AudioTrack } from '../audio-track-control/audio-track-control';
 
 interface ExtendedHTMLVideoElement extends HTMLVideoElement {
@@ -27,7 +26,7 @@ interface AudioTrackList {
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, RandomModeIndicatorComponent, AudioTrackControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, AudioTrackControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -382,8 +381,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subtitles = [];
     const textTracks = video.textTracks;
 
+    console.log('Detectando subtítulos, tracks disponibles:', textTracks.length);
+
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
+      console.log('Track encontrado:', { kind: track.kind, label: track.label, language: track.language });
       if (track.kind === 'subtitles' || track.kind === 'captions') {
         this.subtitles.push({
           index: i,
@@ -394,6 +396,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
+    console.log('Subtítulos detectados:', this.subtitles.length, this.subtitles);
     this.loadSubtitlePreference();
   }
 
@@ -404,9 +407,12 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.audioTracks = [];
     const audioTrackList = (video as any).audioTracks;
 
+    console.log('Detectando pistas de audio, tracks disponibles:', audioTrackList?.length || 0);
+
     if (audioTrackList && audioTrackList.length > 0) {
       for (let i = 0; i < audioTrackList.length; i++) {
         const track = audioTrackList[i];
+        console.log('Audio track encontrado:', { label: track.label, language: track.language, kind: track.kind });
         this.audioTracks.push({
           index: i,
           label: track.label || `Audio ${i + 1}`,
@@ -414,16 +420,21 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
           kind: track.kind
         });
       }
-      
+
+      console.log('Pistas de audio detectadas:', this.audioTracks.length, this.audioTracks);
       this.loadAudioPreference();
+    } else {
+      console.log('No se encontraron pistas de audio en el video');
     }
   }
 
   private detectTracks(): void {
+    console.log('Iniciando detección de tracks...');
+    // Aumentar delay para dar tiempo a que las pistas se carguen
     setTimeout(() => {
       this.detectSubtitles();
       this.detectAudioTracks();
-    }, 100);
+    }, 500);
   }
 
   onAudioTrackChange(index: number): void {

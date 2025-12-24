@@ -3,12 +3,11 @@
      (mouseleave)="onMouseLeave()">
   <button class="subtitle-icon"
           (click)="toggleMenu()"
-          [class.active]="currentSubtitleIndex >= 0"
-          [disabled]="!hasSubtitles">
+          [class.active]="currentSubtitleIndex >= 0">
     CC
   </button>
 
-  @if (showMenu && hasSubtitles) {
+  @if (showMenu) {
     <div class="subtitle-menu">
       <div class="subtitle-option"
            [class.selected]="currentSubtitleIndex === -1"
