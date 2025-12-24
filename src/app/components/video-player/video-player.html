@@ -5,15 +5,26 @@
      (mouseleave)="onMouseLeave()"
      tabindex="0">
   @if (currentVideo) {
-    <video
-      #videoElement
-      [src]="currentVideoUrl"
-      (ended)="onVideoEnded()"
-      (error)="onVideoError($event)"
-      (loadeddata)="onVideoLoaded()"
-      autoplay
-      class="video-player">
-    </video>
+    @if (currentVideo.isYouTube) {
+      <iframe
+        #youtubePlayer
+        [src]="currentVideoUrl"
+        class="video-player youtube-player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    } @else {
+      <video
+        #videoElement
+        [src]="currentVideoUrl"
+        (ended)="onVideoEnded()"
+        (error)="onVideoError($event)"
+        (loadeddata)="onVideoLoaded()"
+        autoplay
+        class="video-player">
+      </video>
+    }
   }
 
   @if (error) {

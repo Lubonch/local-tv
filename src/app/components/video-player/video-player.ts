@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
@@ -9,6 +10,13 @@ import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-over
 import { VolumeControlComponent } from '../volume-control/volume-control';
 import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void;
+    YT: any;
+  }
+}
+
 @Component({
   selector: 'app-video-player',
   imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
@@ -17,9 +25,10 @@ import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/sub
 })
 export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('youtubePlayer', { static: false }) youtubePlayer!: ElementRef<HTMLIFrameElement>;
 
   currentVideo: VideoFile | null = null;
-  currentVideoUrl: string = '';
+  currentVideoUrl: string | SafeResourceUrl = '';
   nextVideo: VideoFile | null = null;
   isLoading: boolean = false;
   error: string | null = null;
@@ -41,9 +50,14 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   currentSubtitleIndex: number = -1;
   private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
+  private ytPlayer: any = null;
+  private ytApiReady: boolean = false;
+  private youtubeEndTimer: any = null;
+
   constructor(
     private playlistService: PlaylistService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit(): void {
@@ -65,19 +79,51 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.hideControlsTimeout) {
       clearTimeout(this.hideControlsTimeout);
     }
+    if (this.youtubeEndTimer) {
+      clearTimeout(this.youtubeEndTimer);
+    }
+  }
+
+  private startYouTubeVideoEndTimer(): void {
+    // Limpiar timer anterior si existe
+    if (this.youtubeEndTimer) {
+      clearTimeout(this.youtubeEndTimer);
+    }
+
+    // Por defecto, asumir 5 minutos para videos de YouTube
+    // En producción podrías obtener la duración real desde la API de Invidious
+    const defaultDuration = 5 * 60 * 1000; // 5 minutos en ms
+
+    this.youtubeEndTimer = setTimeout(() => {
+      console.log('Video de YouTube terminado (timeout), cargando siguiente...');
+      this.onVideoEnded();
+    }, defaultDuration);
   }
 
   loadNextVideo(): void {
     const nextVideo = this.playlistService.getNextVideo();
     if (nextVideo) {
-      if (this.currentVideoUrl) {
+      // Revocar URL anterior solo si es un blob local
+      if (this.currentVideoUrl && typeof this.currentVideoUrl === 'string' && this.currentVideoUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.currentVideoUrl);
       }
 
       this.currentVideo = nextVideo;
-      this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
-      this.error = null;
-      this.isLoading = true;
+
+      if (nextVideo.isYouTube && nextVideo.url) {
+        // Video de YouTube - usar URL de embed
+        this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(nextVideo.url);
+        this.isLoading = false;
+        this.error = null;
+
+        // Iniciar timer para simular duración del video de YouTube
+        this.startYouTubeVideoEndTimer();
+      } else if (nextVideo.file) {
+        // Video local - crear blob URL
+        this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
+        this.error = null;
+        this.isLoading = true;
+      }
 
       this.preloadNextVideo();
     } else {
@@ -306,7 +352,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onChangeFolder(): void {
-    if (this.currentVideoUrl) {
+    if (this.currentVideoUrl && typeof this.currentVideoUrl === 'string' && this.currentVideoUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.currentVideoUrl);
     }
     window.location.reload();

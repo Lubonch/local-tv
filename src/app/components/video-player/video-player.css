@@ -17,6 +17,10 @@
   object-fit: contain;
 }
 
+.youtube-player {
+  border: none;
+}
+
 .error-message,
 .loading-message {
   position: absolute;

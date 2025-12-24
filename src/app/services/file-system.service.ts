@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 
 export interface VideoFile {
-  file: File;
+  file: File | null;
   name: string;
   path: string;
   url?: string;
+  isYouTube?: boolean;
 }
 
 @Injectable({

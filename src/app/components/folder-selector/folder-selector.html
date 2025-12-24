@@ -12,10 +12,31 @@
     @if (isSupported) {
       @if (!isLoading && videoCount === 0) {
         <div class="action-box">
-          <p class="instruction">Selecciona una carpeta con videos para comenzar</p>
+          <p class="instruction">Selecciona una carpeta con videos o ingresa una playlist de YouTube</p>
           <button class="select-button" (click)="onSelectFolder()">
             Seleccionar Carpeta
           </button>
+
+          <div class="divider">
+            <span>o</span>
+          </div>
+
+          <div class="youtube-input-container">
+            <input
+              type="text"
+              class="youtube-input"
+              placeholder="https://www.youtube.com/playlist?list=..."
+              [(ngModel)]="youtubePlaylistUrl"
+              (keyup.enter)="onLoadYouTubePlaylist()"
+            />
+            <button
+              class="youtube-button"
+              (click)="onLoadYouTubePlaylist()"
+              [disabled]="!youtubePlaylistUrl"
+            >
+              Cargar Playlist
+            </button>
+          </div>
         </div>
       }
 
