@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
@@ -9,14 +9,29 @@ import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-over
 import { VolumeControlComponent } from '../volume-control/volume-control';
 import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 import { RandomModeIndicatorComponent } from '../random-mode-indicator/random-mode-indicator';
+import { AudioTrackControlComponent, AudioTrack } from '../audio-track-control/audio-track-control';
+
+interface ExtendedHTMLVideoElement extends HTMLVideoElement {
+  audioTracks?: AudioTrackList;
+}
+
+interface AudioTrackList {
+  length: number;
+  [index: number]: {
+    enabled: boolean;
+    label: string;
+    language: string;
+    kind: string;
+  };
+}
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, RandomModeIndicatorComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, RandomModeIndicatorComponent, AudioTrackControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
-export class VideoPlayerComponent implements OnInit, OnDestroy {
+export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
 
   currentVideo: VideoFile | null = null;
@@ -42,6 +57,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
   currentSubtitleIndex: number = -1;
   private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
+  audioTracks: AudioTrack[] = [];
+  currentAudioIndex: number = 0;
+  private readonly AUDIO_STORAGE_KEY = 'video-audio-preference';
+
   constructor(
     private playlistService: PlaylistService,
     private storageService: StorageService
@@ -54,6 +73,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
 
     this.loadVolume();
     this.loadNextVideo();
+  }
+
+  ngAfterViewInit(): void {
   }
 
   ngOnDestroy(): void {
@@ -125,7 +147,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
-      this.detectSubtitles();
+      this.detectTracks();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -365,7 +387,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
       if (track.kind === 'subtitles' || track.kind === 'captions') {
         this.subtitles.push({
           index: i,
-          label: track.label || `Pista ${i + 1}`,
+          label: track.label || `Subtítulo ${i + 1}`,
           language: track.language,
           kind: track.kind as 'subtitles' | 'captions'
         });
@@ -373,6 +395,60 @@ export class VideoPlayerComponent implements OnInit, OnDestroy {
     }
 
     this.loadSubtitlePreference();
+  }
+
+  private detectAudioTracks(): void {
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    this.audioTracks = [];
+    const audioTrackList = (video as any).audioTracks;
+
+    if (audioTrackList && audioTrackList.length > 0) {
+      for (let i = 0; i < audioTrackList.length; i++) {
+        const track = audioTrackList[i];
+        this.audioTracks.push({
+          index: i,
+          label: track.label || `Audio ${i + 1}`,
+          language: track.language,
+          kind: track.kind
+        });
+      }
+      
+      this.loadAudioPreference();
+    }
+  }
+
+  private detectTracks(): void {
+    setTimeout(() => {
+      this.detectSubtitles();
+      this.detectAudioTracks();
+    }, 100);
+  }
+
+  onAudioTrackChange(index: number): void {
+    this.currentAudioIndex = index;
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    const audioTracks = (video as any).audioTracks;
+    if (!audioTracks) return;
+
+    for (let i = 0; i < audioTracks.length; i++) {
+      audioTracks[i].enabled = i === index;
+    }
+
+    localStorage.setItem(this.AUDIO_STORAGE_KEY, index.toString());
+  }
+
+  private loadAudioPreference(): void {
+    const saved = localStorage.getItem(this.AUDIO_STORAGE_KEY);
+    if (saved) {
+      const index = parseInt(saved);
+      if (index >= 0 && index < this.audioTracks.length) {
+        this.onAudioTrackChange(index);
+      }
+    }
   }
 
   onSubtitleChange(index: number): void {

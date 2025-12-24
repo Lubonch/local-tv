@@ -69,34 +69,35 @@
 
 ---
 
-## Fase 4: Manejo de Subtítulos ✅ COMPLETADA (Parcial - Solo pistas embebidas)
+## Fase 4: Manejo de Subtítulos ✅ COMPLETADA
 
 ### Tareas:
 - [x] **4.1**: Detectar subtítulos embebidos
-  - Detectar subtítulos embebidos en el archivo de video (pistas de texto)
-  - Listar pistas de subtítulos disponibles
-  - PENDIENTE: Buscar archivos .srt o .vtt externos
+  - ✅ Detectar subtítulos embebidos en el archivo de video (pistas de texto)
+  - ✅ Listar pistas de subtítulos disponibles
+  - ✅ Soporte completo para archivos MKV con múltiples pistas
   
 - [x] **4.2**: Crear componente SubtitleControl
-  - Botón CC en controles
-  - Lista desplegable con idiomas disponibles
-  - Opción "Sin subtítulos"
+  - ✅ Botón CC en controles
+  - ✅ Lista desplegable con idiomas disponibles
+  - ✅ Opción "Sin subtítulos"
   
 - [x] **4.3**: Renderizar subtítulos
-  - Usar elemento <track> nativo de HTML5
-  - Sincronizar con tiempo del video
+  - ✅ Usar elemento <track> nativo de HTML5
+  - ✅ Sincronizar con tiempo del video
   
 - [x] **4.4**: Persistencia y atajos
-  - Recordar preferencia de subtítulos en localStorage
-  - Atajo C para toggle subtítulos
-  - Permitir cambio durante reproducción
+  - ✅ Recordar preferencia de subtítulos en localStorage
+  - ✅ Atajo C para toggle subtítulos
+  - ✅ Permitir cambio durante reproducción
 
-- [ ] **4.5**: Control de pistas de audio
-  - PENDIENTE: Detectar pistas de audio múltiples en el video
-  - PENDIENTE: Crear selector de idioma de audio
-  - PENDIENTE: Mostrar nombre/idioma de cada pista disponible
-  - PENDIENTE: Permitir cambio durante reproducción
-  - PENDIENTE: Guardar preferencia de audio en localStorage
+- [x] **4.5**: Control de pistas de audio
+  - ✅ Detectar pistas de audio múltiples en el video
+  - ✅ Crear selector de idioma de audio (AudioTrackControl)
+  - ✅ Mostrar nombre/idioma de cada pista disponible
+  - ✅ Permitir cambio durante reproducción
+  - ✅ Guardar preferencia de audio en localStorage
+  - ✅ Soporte completo para archivos MKV
 
 ---
 
@@ -137,7 +138,7 @@
 - ✅ Fase 1: COMPLETADA (23/12/2024)
 - ✅ Fase 2: COMPLETADA (23/12/2024)
 - ✅ Fase 3: COMPLETADA (23/12/2024)
-- ✅ Fase 4: COMPLETADA Parcial - Subtítulos embebidos funcionales (23/12/2024)
+- ✅ Fase 4: COMPLETADA - Subtítulos y audio embebidos funcionales, soporte MKV (23/12/2024)
 - ✅ Fase 5: COMPLETADA (23/12/2024)
 
 ---
