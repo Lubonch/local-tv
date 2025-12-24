@@ -2,32 +2,16 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } fr
 import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
-import { MkvHandlerService, MKVTrack } from '../../services/mkv-handler.service';
 import { CommonModule } from '@angular/common';
 import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
 import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
-import { AudioTrackControlComponent, AudioTrack } from '../audio-track-control/audio-track-control';
-
-interface ExtendedHTMLVideoElement extends HTMLVideoElement {
-  audioTracks?: AudioTrackList;
-}
-
-interface AudioTrackList {
-  length: number;
-  [index: number]: {
-    enabled: boolean;
-    label: string;
-    language: string;
-    kind: string;
-  };
-}
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent, AudioTrackControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -57,17 +41,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   currentSubtitleIndex: number = -1;
   private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
-  audioTracks: AudioTrack[] = [];
-  currentAudioIndex: number = 0;
-  private readonly AUDIO_STORAGE_KEY = 'video-audio-preference';
-
-  private mkvTracks: MKVTrack[] = [];
-  private isMkvFile: boolean = false;
-
   constructor(
     private playlistService: PlaylistService,
-    private storageService: StorageService,
-    private mkvHandler: MkvHandlerService
+    private storageService: StorageService
   ) { }
 
   ngOnInit(): void {
@@ -405,121 +381,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadSubtitlePreference();
   }
 
-  private checkForExternalSubtitles(): void {
-    // Removido - ya no es necesario
-  }
-
-  private detectAudioTracks(): void {
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    this.audioTracks = [];
-    const audioTrackList = (video as any).audioTracks;
-
-    if (audioTrackList && audioTrackList.length > 0) {
-      for (let i = 0; i < audioTrackList.length; i++) {
-        const track = audioTrackList[i];
-        this.audioTracks.push({
-          index: i,
-          label: track.label || track.language || `Audio ${i + 1}`,
-          language: track.language,
-          kind: track.kind
-        });
-      }
-
-      this.loadAudioPreference();
-    } else if (this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
-      console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a múltiples pistas de audio en archivos MKV.');
-      console.warn('📝 SOLUCIÓN: Remux el MKV seleccionando solo la pista deseada con FFmpeg.');
-      console.warn('   Ejemplo: ffmpeg -i "' + this.currentVideo.name + '" -map 0:v -map 0:a:1 -c copy output.mkv');
-    }
-  }
-
-  private async detectTracks(): Promise<void> {
-    // Verificar si es archivo MKV
-    this.isMkvFile = this.currentVideo?.name.toLowerCase().endsWith('.mkv') || false;
-
-    if (this.isMkvFile && this.currentVideo) {
-      console.log('🎬 Archivo MKV detectado, parseando con ts-ebml...');
-      await this.detectMkvTracks();
-    } else {
-      // Usar detección nativa del navegador para otros formatos
-      this.detectSubtitles();
-      this.detectAudioTracks();
-    }
-  }
-
-  private async detectMkvTracks(): Promise<void> {
-    if (!this.currentVideo) return;
-
-    try {
-      // Parsear el archivo MKV para obtener las pistas
-      this.mkvTracks = await this.mkvHandler.parseFile(this.currentVideo.file);
-
-      // Convertir tracks de MKV a formato de la UI
-      const audioMkvTracks = this.mkvHandler.getAudioTracks();
-      const subtitleMkvTracks = this.mkvHandler.getSubtitleTracks();
-
-      // Mapear pistas de audio
-      this.audioTracks = audioMkvTracks.map((track, index) => ({
-        index: index,
-        label: this.mkvHandler.getTrackLabel(track),
-        language: track.language,
-        kind: 'main'
-      }));
-
-      // Mapear pistas de subtítulos
-      this.subtitles = subtitleMkvTracks.map((track, index) => ({
-        index: index,
-        label: this.mkvHandler.getTrackLabel(track),
-        language: track.language,
-        kind: 'subtitles' as const
-      }));
-
-      console.log('✅ MKV parseado:', {
-        audio: this.audioTracks.length,
-        subtitles: this.subtitles.length
-      });
-
-      // Nota: El navegador solo puede reproducir el audio/video por defecto
-      // Las pistas de audio múltiples no se pueden cambiar en tiempo real sin MSE
-      if (this.audioTracks.length > 1) {
-        console.warn('⚠️ Este MKV tiene múltiples pistas de audio.');
-        console.warn('   El navegador solo puede reproducir la pista marcada como default.');
-        console.warn('   Para cambiar de audio, necesitas remuxear el archivo con la pista deseada.');
-      }
-
-    } catch (error) {
-      console.error('❌ Error detectando tracks de MKV:', error);
-      // Fallback a detección nativa
-      this.detectSubtitles();
-      this.detectAudioTracks();
-    }
-  }
-
-  onAudioTrackChange(index: number): void {
-    this.currentAudioIndex = index;
-    const video = this.videoElement?.nativeElement;
-    if (!video) return;
-
-    const audioTracks = (video as any).audioTracks;
-    if (!audioTracks) return;
-
-    for (let i = 0; i < audioTracks.length; i++) {
-      audioTracks[i].enabled = i === index;
-    }
-
-    localStorage.setItem(this.AUDIO_STORAGE_KEY, index.toString());
-  }
-
-  private loadAudioPreference(): void {
-    const saved = localStorage.getItem(this.AUDIO_STORAGE_KEY);
-    if (saved) {
-      const index = parseInt(saved);
-      if (index >= 0 && index < this.audioTracks.length) {
-        this.onAudioTrackChange(index);
-      }
-    }
+  private detectTracks(): void {
+    this.detectSubtitles();
   }
 
   onSubtitleChange(index: number): void {

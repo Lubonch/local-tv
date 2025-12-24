@@ -71,32 +71,17 @@ MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador
 
 **Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
-### Soporte MKV
+### Subtítulos
 
-La aplicación **detecta automáticamente** las pistas de audio y subtítulos embebidos en archivos MKV usando un parser EBML.
+Los subtítulos se detectan automáticamente desde:
 
-**Funcionalidades**:
+- Pistas de subtítulos embebidas en el video (MP4, WebM)
+- Archivos .srt con el mismo nombre que el video en la misma carpeta
 
-- ✅ **Detección de todas las pistas**: Audio y subtítulos embebidos se muestran en los menús
-- ✅ **Información completa**: Idioma, nombre de cada pista
-- ⚠️ **Limitación de navegadores**: Solo se puede reproducir el audio/video marcado como "default" en el MKV
+**Nota sobre archivos MKV**: Los navegadores web no pueden acceder a subtítulos embebidos en archivos MKV. Para usarlos:
 
-**Cambiar pistas de audio MKV**:
-
-Debido a limitaciones de los navegadores web, no es posible cambiar entre pistas de audio embebidas en tiempo real. Para usar una pista específica:
-
-1. **Ver qué pistas tiene el archivo**: La app te mostrará todas las pistas detectadas
-2. **Remuxear con la pista deseada**:
-
-```bash
-# Ejemplo: usar la segunda pista de audio (índice 1)
-ffmpeg -i video.mkv -map 0:v -map 0:a:1 -c copy video_audio2.mkv
-```
-
-**Subtítulos**: Los subtítulos embebidos se detectan y muestran en el menú, pero los navegadores no pueden renderizarlos directamente. Soluciones:
-
-- Convertir a MP4 (los subtítulos se mantendrán): `ffmpeg -i video.mkv -c copy video.mp4`
-- Extraer a .srt separado: `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
+- Extrae los subtítulos a .srt: `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
+- O convierte a MP4: `ffmpeg -i video.mkv -c copy video.mp4`
 
 ---
 
