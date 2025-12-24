@@ -55,7 +55,16 @@ export class OverlayComponent implements OnInit, OnDestroy {
   }
 
   get formattedTime(): string {
-    return this.clockService.formatTime(this.currentTime, false);
+    const time = this.clockService.formatTime(this.currentTime, false);
+    const day = this.currentTime.getDate();
+    const month = this.currentTime.getMonth() + 1; // getMonth() retorna 0-11
+    
+    // Agregar emoji navideño el 24 y 25 de diciembre
+    if (month === 12 && (day === 24 || day === 25)) {
+      return `🎄 ${time}`;
+    }
+    
+    return time;
   }
 
   get temperatureText(): string {
