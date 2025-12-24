@@ -28,8 +28,26 @@ export class YouTubeService {
   ];
 
   private currentInstanceIndex = 0;
+  private readonly LAST_INSTANCE_KEY = 'youtube-last-working-instance';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.loadLastWorkingInstance();
+  }
+
+  private loadLastWorkingInstance(): void {
+    const saved = localStorage.getItem(this.LAST_INSTANCE_KEY);
+    if (saved) {
+      const index = this.INVIDIOUS_INSTANCES.indexOf(saved);
+      if (index !== -1) {
+        this.currentInstanceIndex = index;
+        console.log(`Using last working instance: ${saved}`);
+      }
+    }
+  }
+
+  private saveLastWorkingInstance(instance: string): void {
+    localStorage.setItem(this.LAST_INSTANCE_KEY, instance);
+  }
 
   /**
    * Extrae el ID de playlist de una URL de YouTube
@@ -48,38 +66,50 @@ export class YouTubeService {
    */
   async getPlaylistVideos(playlistId: string): Promise<YouTubeVideo[]> {
     let lastError: Error | null = null;
+    let attemptCount = 0;
+    const maxRetries = 2; // Retry each instance up to 2 times
 
     // Intenta con cada instancia hasta que una funcione
     for (let i = 0; i < this.INVIDIOUS_INSTANCES.length; i++) {
       const instance = this.INVIDIOUS_INSTANCES[this.currentInstanceIndex];
+      
+      for (let retry = 0; retry <= maxRetries; retry++) {
+        attemptCount++;
+        
+        try {
+          console.log(`Attempt ${attemptCount}: Trying to get playlist from: ${instance}${retry > 0 ? ` (retry ${retry})` : ''}`);
 
-      try {
-        console.log(`Intentando obtener playlist desde: ${instance}`);
+          const response = await firstValueFrom(
+            this.http.get<YouTubePlaylistResponse>(
+              `${instance}/api/v1/playlists/${playlistId}`,
+              {
+                headers: { 'Accept': 'application/json' },
+                observe: 'body'
+              }
+            )
+          );
 
-        const response = await firstValueFrom(
-          this.http.get<YouTubePlaylistResponse>(
-            `${instance}/api/v1/playlists/${playlistId}`,
-            {
-              headers: { 'Accept': 'application/json' },
-              // Timeout de 10 segundos
-              observe: 'body'
-            }
-          )
-        );
+          console.log(`✓ Playlist obtained: ${response.title} (${response.videos.length} videos)`);
+          this.saveLastWorkingInstance(instance);
+          return response.videos;
 
-        console.log(`Playlist obtenida: ${response.title} (${response.videos.length} videos)`);
-        return response.videos;
-
-      } catch (error) {
-        console.warn(`Falló instancia ${instance}:`, error);
-        lastError = error as Error;
-
-        // Siguiente instancia
-        this.currentInstanceIndex = (this.currentInstanceIndex + 1) % this.INVIDIOUS_INSTANCES.length;
+        } catch (error) {
+          console.warn(`✗ Failed instance ${instance}${retry > 0 ? ` (retry ${retry})` : ''}:`, error);
+          lastError = error as Error;
+          
+          // Wait before retry with exponential backoff
+          if (retry < maxRetries) {
+            const waitTime = Math.pow(2, retry) * 500; // 500ms, 1000ms, 2000ms...
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        }
       }
+
+      // Move to next instance after all retries exhausted
+      this.currentInstanceIndex = (this.currentInstanceIndex + 1) % this.INVIDIOUS_INSTANCES.length;
     }
 
-    throw new Error(`No se pudo obtener la playlist desde ninguna instancia de Invidious: ${lastError?.message}`);
+    throw new Error(`No se pudo conectar a Invidious. Intenta de nuevo o usa una carpeta local. Último error: ${lastError?.message}`);
   }
 
   /**

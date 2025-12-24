@@ -25,7 +25,7 @@ declare global {
 })
 export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
-  @ViewChild('youtubePlayer', { static: false }) youtubePlayer!: ElementRef<HTMLIFrameElement>;
+  @ViewChild('youtubePlayer', { static: false }) youtubePlayer!: ElementRef<HTMLDivElement>;
 
   currentVideo: VideoFile | null = null;
   currentVideoUrl: string | SafeResourceUrl = '';
@@ -52,13 +52,25 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private ytPlayer: any = null;
   private ytApiReady: boolean = false;
+  private ytApiLoading: boolean = false;
   private youtubeEndTimer: any = null;
 
   constructor(
     private playlistService: PlaylistService,
     private storageService: StorageService,
     private sanitizer: DomSanitizer
-  ) { }
+  ) {
+    this.setupYouTubeAPICallback();
+  }
+
+  private setupYouTubeAPICallback(): void {
+    // Setup global callback for YouTube API
+    window.onYouTubeIframeAPIReady = () => {
+      console.log('YouTube IFrame API Ready');
+      this.ytApiReady = true;
+      this.ytApiLoading = false;
+    };
+  }
 
   ngOnInit(): void {
     this.playlistService.currentVideo$.subscribe(video => {
@@ -79,25 +91,144 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.hideControlsTimeout) {
       clearTimeout(this.hideControlsTimeout);
     }
-    if (this.youtubeEndTimer) {
-      clearTimeout(this.youtubeEndTimer);
+    this.clearYouTubeEndTimer();
+    if (this.ytPlayer) {
+      try {
+        this.ytPlayer.destroy();
+      } catch (e) {
+        // Ignore errors on cleanup
+      }
     }
   }
 
-  private startYouTubeVideoEndTimer(): void {
-    // Limpiar timer anterior si existe
-    if (this.youtubeEndTimer) {
-      clearTimeout(this.youtubeEndTimer);
+  private loadYouTubeAPI(): void {
+    if (this.ytApiReady || this.ytApiLoading) {
+      return;
     }
 
-    // Por defecto, asumir 5 minutos para videos de YouTube
-    // En producción podrías obtener la duración real desde la API de Invidious
-    const defaultDuration = 5 * 60 * 1000; // 5 minutos en ms
+    // Check if API is already loaded
+    if (window.YT && window.YT.Player) {
+      this.ytApiReady = true;
+      return;
+    }
+
+    this.ytApiLoading = true;
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+  }
+
+  private initYouTubePlayer(videoId: string, duration?: number): void {
+    // Wait for API to be ready
+    if (!this.ytApiReady) {
+      setTimeout(() => this.initYouTubePlayer(videoId, duration), 100);
+      return;
+    }
+
+    // Destroy existing player if any
+    if (this.ytPlayer) {
+      try {
+        this.ytPlayer.destroy();
+      } catch (e) {
+        console.warn('Error destroying previous YouTube player:', e);
+      }
+      this.ytPlayer = null;
+    }
+
+    // Wait for iframe element to be available
+    setTimeout(() => {
+      const iframeElement = this.youtubePlayer?.nativeElement;
+      if (!iframeElement) {
+        console.warn('YouTube iframe element not found, using fallback timer');
+        this.startYouTubeVideoEndTimer(duration);
+        return;
+      }
+
+      try {
+        this.ytPlayer = new window.YT.Player(iframeElement, {
+          videoId: videoId,
+          events: {
+            'onReady': (event: any) => {
+              console.log('YouTube player ready');
+              event.target.playVideo();
+              
+              // Update duration if we have the player
+              try {
+                const playerDuration = event.target.getDuration();
+                if (playerDuration > 0) {
+                  this.duration = playerDuration;
+                  console.log(`YouTube video duration from player: ${playerDuration}s`);
+                }
+              } catch (e) {
+                console.warn('Could not get duration from player:', e);
+              }
+            },
+            'onStateChange': (event: any) => {
+              if (event.data === window.YT.PlayerState.ENDED) {
+                console.log('YouTube video ended (detected by API)');
+                this.clearYouTubeEndTimer();
+                this.onVideoEnded();
+              } else if (event.data === window.YT.PlayerState.PLAYING) {
+                console.log('YouTube video playing');
+                // Start time update for progress bar
+                this.startYouTubeTimeUpdate();
+              }
+            },
+            'onError': (event: any) => {
+              console.error('YouTube player error:', event.data);
+              this.error = 'Error al cargar el video de YouTube. Saltando al siguiente...';
+              setTimeout(() => {
+                this.onVideoEnded();
+              }, 2000);
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error initializing YouTube player:', error);
+        console.log('Using fallback timer method');
+        this.startYouTubeVideoEndTimer(duration);
+      }
+    }, 100);
+  }
+
+  private startYouTubeTimeUpdate(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+
+    this.updateInterval = setInterval(() => {
+      if (this.ytPlayer && this.ytPlayer.getCurrentTime) {
+        try {
+          this.currentTime = this.ytPlayer.getCurrentTime();
+          if (this.duration === 0 && this.ytPlayer.getDuration) {
+            this.duration = this.ytPlayer.getDuration();
+          }
+        } catch (e) {
+          // Player might not be ready yet
+        }
+      }
+    }, 100);
+  }
+
+  private clearYouTubeEndTimer(): void {
+    if (this.youtubeEndTimer) {
+      clearTimeout(this.youtubeEndTimer);
+      this.youtubeEndTimer = null;
+    }
+  }
+
+  private startYouTubeVideoEndTimer(duration?: number): void {
+    // Limpiar timer anterior si existe
+    this.clearYouTubeEndTimer();
+
+    // Use provided duration or default to 5 minutes as fallback
+    const durationMs = duration ? duration * 1000 : 5 * 60 * 1000;
 
     this.youtubeEndTimer = setTimeout(() => {
-      console.log('Video de YouTube terminado (timeout), cargando siguiente...');
+      console.log('Video de YouTube terminado (timeout fallback), cargando siguiente...');
       this.onVideoEnded();
-    }, defaultDuration);
+    }, durationMs);
   }
 
   loadNextVideo(): void {
@@ -111,13 +242,24 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.currentVideo = nextVideo;
 
       if (nextVideo.isYouTube && nextVideo.url) {
-        // Video de YouTube - usar URL de embed
+        // Video de YouTube - Load YouTube API and initialize player
+        this.loadYouTubeAPI();
+        
+        // Set duration from video metadata if available
+        if (nextVideo.duration) {
+          this.duration = nextVideo.duration;
+          console.log(`YouTube video duration from metadata: ${nextVideo.duration}s`);
+        }
+        
         this.currentVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(nextVideo.url);
         this.isLoading = false;
         this.error = null;
 
-        // Iniciar timer para simular duración del video de YouTube
-        this.startYouTubeVideoEndTimer();
+        // Extract videoId from path
+        const videoId = nextVideo.path;
+        
+        // Initialize YouTube Player with API
+        this.initYouTubePlayer(videoId, nextVideo.duration);
       } else if (nextVideo.file) {
         // Video local - crear blob URL
         this.currentVideoUrl = URL.createObjectURL(nextVideo.file);

@@ -7,7 +7,9 @@ export class StorageService {
   private readonly STORAGE_KEYS = {
     DIRECTORY_HANDLE: 'local_tv_directory_handle',
     LAST_VIDEO_INDEX: 'local_tv_last_video_index',
-    VOLUME: 'local_tv_volume'
+    VOLUME: 'local_tv_volume',
+    YOUTUBE_PLAYLIST: 'local_tv_youtube_playlist',
+    YOUTUBE_PLAYLIST_INDEX: 'local_tv_youtube_playlist_index'
   };
 
   constructor() { }
@@ -124,5 +126,47 @@ export class StorageService {
     await this.clearDirectoryHandle();
     localStorage.removeItem(this.STORAGE_KEYS.LAST_VIDEO_INDEX);
     localStorage.removeItem(this.STORAGE_KEYS.VOLUME);
+    localStorage.removeItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST);
+    localStorage.removeItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST_INDEX);
+  }
+
+  // YouTube Playlist persistence methods
+  saveYouTubePlaylist(playlistUrl: string, videos: any[]): void {
+    try {
+      const playlistData = {
+        url: playlistUrl,
+        videos: videos,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST, JSON.stringify(playlistData));
+    } catch (error) {
+      console.error('Error saving YouTube playlist:', error);
+    }
+  }
+
+  getYouTubePlaylist(): { url: string, videos: any[], timestamp: number } | null {
+    try {
+      const saved = localStorage.getItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Error loading YouTube playlist:', error);
+    }
+    return null;
+  }
+
+  clearYouTubePlaylist(): void {
+    localStorage.removeItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST);
+    localStorage.removeItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST_INDEX);
+  }
+
+  saveYouTubePlaylistIndex(index: number): void {
+    localStorage.setItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST_INDEX, index.toString());
+  }
+
+  getYouTubePlaylistIndex(): number | null {
+    const index = localStorage.getItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST_INDEX);
+    return index ? parseInt(index, 10) : null;
   }
 }
