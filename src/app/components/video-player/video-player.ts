@@ -522,7 +522,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private adjustVolume(delta: number): void {
-    const newVolume = Math.max(0, Math.min(400, this.volume + delta));
+    const newVolume = Math.max(0, Math.min(100, this.volume + delta));
     this.onVolumeChange(newVolume);
   }
 }
