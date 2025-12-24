@@ -102,7 +102,11 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private loadYouTubeAPI(): void {
-    if (this.ytApiReady || this.ytApiLoading) {
+    if (this.ytApiReady) {
+      return;
+    }
+    
+    if (this.ytApiLoading) {
       return;
     }
 
@@ -119,10 +123,17 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
   }
 
-  private initYouTubePlayer(videoId: string, duration?: number): void {
+  private initYouTubePlayer(videoId: string, duration?: number, retryCount: number = 0): void {
+    const maxRetries = 50; // 5 seconds max wait (50 * 100ms)
+    
     // Wait for API to be ready
     if (!this.ytApiReady) {
-      setTimeout(() => this.initYouTubePlayer(videoId, duration), 100);
+      if (retryCount >= maxRetries) {
+        console.warn('YouTube API failed to load, using fallback timer');
+        this.startYouTubeVideoEndTimer(duration);
+        return;
+      }
+      setTimeout(() => this.initYouTubePlayer(videoId, duration, retryCount + 1), 100);
       return;
     }
 

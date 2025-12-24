@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { VideoFile } from './file-system.service';
 
 @Injectable({
   providedIn: 'root'
@@ -131,7 +132,7 @@ export class StorageService {
   }
 
   // YouTube Playlist persistence methods
-  saveYouTubePlaylist(playlistUrl: string, videos: any[]): void {
+  saveYouTubePlaylist(playlistUrl: string, videos: VideoFile[]): void {
     try {
       const playlistData = {
         url: playlistUrl,
@@ -144,7 +145,7 @@ export class StorageService {
     }
   }
 
-  getYouTubePlaylist(): { url: string, videos: any[], timestamp: number } | null {
+  getYouTubePlaylist(): { url: string, videos: VideoFile[], timestamp: number } | null {
     try {
       const saved = localStorage.getItem(this.STORAGE_KEYS.YOUTUBE_PLAYLIST);
       if (saved) {
