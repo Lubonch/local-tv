@@ -71,8 +71,6 @@ MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador
 
 **Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
-**Nota sobre MKV**: Los archivos MKV pueden reproducirse, pero el control de subtítulos y pistas de audio múltiples no está disponible. El navegador solo reproduce la pista por defecto. Para funcionalidad completa de subtítulos/audio, usa MP4.
-
 ---
 
 ## Deploy en GitHub Pages
