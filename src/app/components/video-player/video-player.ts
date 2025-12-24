@@ -371,7 +371,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
 
-    // Mostrar mensaje sobre limitación de MKV solo si no hay subtítulos y el archivo es MKV
     if (this.subtitles.length === 0 && this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
       console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a subtítulos embebidos en archivos MKV.');
       console.warn('📝 SOLUCIÓN: Extrae los subtítulos a archivos .srt con MKVToolNix o FFmpeg.');
