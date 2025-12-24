@@ -71,6 +71,24 @@ MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador
 
 **Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
+### Subtítulos y Pistas de Audio en MKV
+
+**Limitación importante**: Los navegadores web NO pueden acceder a subtítulos o pistas de audio embebidos en archivos MKV. Solo pueden reproducir el video/audio por defecto.
+
+**Soluciones**:
+
+1. **Para subtítulos**: Extrae los subtítulos a archivos .srt separados usando:
+   - [MKVToolNix](https://mkvtoolnix.download/) - `mkvextract tracks video.mkv 2:subtitles.srt`
+   - [FFmpeg](https://ffmpeg.org/) - `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
+   
+2. **Para múltiples pistas de audio**: Remux el MKV seleccionando solo la pista deseada:
+   - `ffmpeg -i video.mkv -map 0:v -map 0:a:1 -c copy output.mkv`
+
+3. **Alternativa**: Convierte tus MKV a MP4:
+   - `ffmpeg -i video.mkv -c copy video.mp4`
+
+Los archivos .srt con el mismo nombre que el video se cargarán automáticamente.
+
 ---
 
 ## Deploy en GitHub Pages

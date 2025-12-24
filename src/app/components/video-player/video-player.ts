@@ -140,27 +140,12 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   onVideoLoaded(): void {
     this.isLoading = false;
     this.errorCount = 0;
-    console.log('Video cargado y listo:', this.currentVideo?.name);
 
     const video = this.videoElement?.nativeElement;
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
-      
-      // Intentar detectar tracks inmediatamente
       this.detectTracks();
-      
-      // Intentar nuevamente después de que el video comience a reproducirse
-      video.addEventListener('loadedmetadata', () => {
-        console.log('loadedmetadata event - intentando detectar tracks nuevamente');
-        this.detectTracks();
-      }, { once: true });
-      
-      video.addEventListener('canplay', () => {
-        console.log('canplay event - intentando detectar tracks nuevamente');
-        this.detectTracks();
-      }, { once: true });
-      
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -390,39 +375,13 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private detectSubtitles(): void {
     const video = this.videoElement?.nativeElement;
-    if (!video) {
-      console.log('No hay elemento de video disponible');
-      return;
-    }
+    if (!video) return;
 
     this.subtitles = [];
     const textTracks = video.textTracks;
 
-    console.log('=== DETECCIÓN DE SUBTÍTULOS ===');
-    console.log('Nombre del archivo:', this.currentVideo?.name);
-    console.log('TextTracks disponibles:', textTracks.length);
-    console.log('TextTracks object:', textTracks);
-
-    // Listar TODAS las propiedades del video element
-    console.log('Propiedades del video element:');
-    const videoAny = video as any;
-    for (let prop in videoAny) {
-      if (prop.toLowerCase().includes('track') || prop.toLowerCase().includes('subtitle')) {
-        console.log(`  ${prop}:`, videoAny[prop]);
-      }
-    }
-
     for (let i = 0; i < textTracks.length; i++) {
       const track = textTracks[i];
-      console.log(`Track ${i}:`, { 
-        kind: track.kind, 
-        label: track.label, 
-        language: track.language,
-        mode: track.mode,
-        cues: track.cues
-      });
-      
-      // Aceptar cualquier tipo de track de texto, no solo subtitles/captions
       this.subtitles.push({
         index: i,
         label: track.label || track.language || `Subtítulo ${i + 1}`,
@@ -431,35 +390,30 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }
 
-    console.log('Subtítulos detectados:', this.subtitles.length, this.subtitles);
-    console.log('=================================');
+    // Mostrar mensaje sobre limitación de MKV solo si no hay subtítulos y el archivo es MKV
+    if (this.subtitles.length === 0 && this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
+      console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a subtítulos embebidos en archivos MKV.');
+      console.warn('📝 SOLUCIÓN: Extrae los subtítulos a archivos .srt con MKVToolNix o FFmpeg.');
+      console.warn('   Ejemplo: ffmpeg -i "' + this.currentVideo.name + '" -map 0:s:0 subtitles.srt');
+    }
+
     this.loadSubtitlePreference();
+  }
+  
+  private checkForExternalSubtitles(): void {
+    // Removido - ya no es necesario
   }
 
   private detectAudioTracks(): void {
     const video = this.videoElement?.nativeElement;
-    if (!video) {
-      console.log('No hay elemento de video disponible');
-      return;
-    }
+    if (!video) return;
 
     this.audioTracks = [];
     const audioTrackList = (video as any).audioTracks;
 
-    console.log('=== DETECCIÓN DE AUDIO ===');
-    console.log('Nombre del archivo:', this.currentVideo?.name);
-    console.log('AudioTracks disponibles:', audioTrackList?.length || 0);
-    console.log('AudioTracks object:', audioTrackList);
-
     if (audioTrackList && audioTrackList.length > 0) {
       for (let i = 0; i < audioTrackList.length; i++) {
         const track = audioTrackList[i];
-        console.log(`Audio track ${i}:`, { 
-          label: track.label, 
-          language: track.language, 
-          kind: track.kind,
-          enabled: track.enabled
-        });
         this.audioTracks.push({
           index: i,
           label: track.label || track.language || `Audio ${i + 1}`,
@@ -468,37 +422,17 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
 
-      console.log('Pistas de audio detectadas:', this.audioTracks.length, this.audioTracks);
-      console.log('==========================');
       this.loadAudioPreference();
-    } else {
-      console.log('No se encontraron pistas de audio en el video');
-      console.log('==========================');
+    } else if (this.currentVideo?.name.toLowerCase().endsWith('.mkv')) {
+      console.warn('⚠️ LIMITACIÓN: Los navegadores no pueden acceder a múltiples pistas de audio en archivos MKV.');
+      console.warn('📝 SOLUCIÓN: Remux el MKV seleccionando solo la pista deseada con FFmpeg.');
+      console.warn('   Ejemplo: ffmpeg -i "' + this.currentVideo.name + '" -map 0:v -map 0:a:1 -c copy output.mkv');
     }
   }
 
   private detectTracks(): void {
-    console.log('===================================');
-    console.log('Iniciando detección de tracks...');
-    console.log('===================================');
-    
-    // Intentar inmediatamente
     this.detectSubtitles();
     this.detectAudioTracks();
-    
-    // Intentar nuevamente después de un delay
-    setTimeout(() => {
-      console.log('=== REINTENTO DESPUÉS DE 500ms ===');
-      this.detectSubtitles();
-      this.detectAudioTracks();
-    }, 500);
-    
-    // Un último intento después de 2 segundos
-    setTimeout(() => {
-      console.log('=== REINTENTO DESPUÉS DE 2s ===');
-      this.detectSubtitles();
-      this.detectAudioTracks();
-    }, 2000);
   }
 
   onAudioTrackChange(index: number): void {
