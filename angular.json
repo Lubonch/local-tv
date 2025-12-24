@@ -23,9 +23,6 @@
             ],
             "styles": [
               "src/styles.css"
-            ],
-            "allowedCommonJsDependencies": [
-              "ts-ebml"
             ]
           },
           "configurations": {

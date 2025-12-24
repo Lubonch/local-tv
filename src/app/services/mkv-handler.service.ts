@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Decoder, EBMLElementDetail } from 'ts-ebml';
 
 export interface MKVTrack {
   trackNumber: number;
@@ -15,7 +14,6 @@ export interface MKVTrack {
 })
 export class MkvHandlerService {
 
-  private decoder = new Decoder();
   private currentFile: File | null = null;
   private tracks: MKVTrack[] = [];
 
@@ -25,17 +23,16 @@ export class MkvHandlerService {
     this.tracks = [];
 
     try {
-      // Leer los primeros 5MB para obtener el header
-      const headerSize = Math.min(5 * 1024 * 1024, file.size);
+      // Leer los primeros 2MB para obtener el header (suficiente para metadata)
+      const headerSize = Math.min(2 * 1024 * 1024, file.size);
       const headerChunk = file.slice(0, headerSize);
       const buffer = await headerChunk.arrayBuffer();
+      const data = new Uint8Array(buffer);
 
-      const elms = this.decoder.decode(buffer);
+      console.log('📊 Leyendo header MKV:', data.length, 'bytes');
 
-      console.log('📊 Elementos EBML decodificados:', elms.length);
-
-      // Parsear tracks del resultado
-      this.parseTracks(elms);
+      // Parsear usando búsqueda manual de elementos EBML
+      this.parseEBMLTracks(data);
 
       console.log('✅ Tracks detectados:', this.tracks);
       return this.tracks;
@@ -46,74 +43,165 @@ export class MkvHandlerService {
     }
   }
 
-  private parseTracks(elements: EBMLElementDetail[]): void {
-    let inTracks = false;
-    let currentTrack: Partial<MKVTrack> = {};
-    let trackDepth = 0;
-
-    for (const elm of elements) {
-      // Detectar inicio de sección Tracks
-      if (elm.type === 'm' && elm.name === 'Tracks') {
-        inTracks = elm.isEnd === false;
-        continue;
+  private parseEBMLTracks(data: Uint8Array): void {
+    let offset = 0;
+    
+    // Buscar el elemento "Tracks" en EBML
+    // Tracks = 0x1654AE6B
+    const tracksId = [0x16, 0x54, 0xAE, 0x6B];
+    
+    while (offset < data.length - 100) {
+      // Buscar la secuencia del ID de Tracks
+      if (data[offset] === tracksId[0] &&
+          data[offset + 1] === tracksId[1] &&
+          data[offset + 2] === tracksId[2] &&
+          data[offset + 3] === tracksId[3]) {
+        
+        console.log('📍 Encontrado elemento Tracks en offset:', offset);
+        
+        // Saltar el ID y el tamaño
+        offset += 4;
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        
+        // Parsear las entradas de tracks
+        this.parseTrackEntries(data, offset, offset + size);
+        break;
       }
+      offset++;
+    }
+  }
 
-      if (!inTracks) continue;
-
-      // Detectar TrackEntry
-      if (elm.type === 'm' && elm.name === 'TrackEntry') {
-        if (elm.isEnd === false) {
-          // Inicio de nuevo track
-          currentTrack = {};
-          trackDepth++;
-        } else {
-          // Fin de track, guardar si es válido
-          trackDepth--;
-          if (currentTrack.trackNumber !== undefined && currentTrack.trackType !== undefined) {
-            this.tracks.push(currentTrack as MKVTrack);
-          }
-          currentTrack = {};
+  private parseTrackEntries(data: Uint8Array, start: number, end: number): void {
+    let offset = start;
+    
+    // TrackEntry = 0xAE
+    while (offset < end - 10) {
+      if (data[offset] === 0xAE) {
+        offset++;
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        
+        const trackEnd = offset + size;
+        const track = this.parseTrackEntry(data, offset, trackEnd);
+        
+        if (track) {
+          this.tracks.push(track);
         }
-        continue;
-      }
-
-      // Solo procesar elementos dentro de TrackEntry
-      if (trackDepth === 0) continue;
-
-      // Parsear propiedades del track
-      switch (elm.name) {
-        case 'TrackNumber':
-          if (elm.type === 'u' && typeof elm.data === 'number') {
-            currentTrack.trackNumber = elm.data;
-          }
-          break;
-        case 'TrackType':
-          if (elm.type === 'u' && typeof elm.data === 'number') {
-            currentTrack.trackType = elm.data;
-          }
-          break;
-        case 'CodecID':
-          if (elm.type === 's' && typeof elm.data === 'string') {
-            currentTrack.codecId = elm.data;
-          }
-          break;
-        case 'Language':
-          if (elm.type === 's' && typeof elm.data === 'string') {
-            currentTrack.language = elm.data;
-          }
-          break;
-        case 'Name':
-          if (elm.type === '8' && typeof elm.data === 'string') {
-            currentTrack.name = elm.data;
-          }
-          break;
-        case 'FlagDefault':
-          if (elm.type === 'u' && typeof elm.data === 'number') {
-            currentTrack.flagDefault = elm.data === 1;
-          }
-          break;
+        
+        offset = trackEnd;
+      } else {
+        offset++;
       }
     }
+  }
+
+  private parseTrackEntry(data: Uint8Array, start: number, end: number): MKVTrack | null {
+    const track: Partial<MKVTrack> = {};
+    let offset = start;
+
+    while (offset < end - 2) {
+      const id = data[offset];
+      offset++;
+
+      // TrackNumber = 0xD7
+      if (id === 0xD7) {
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.trackNumber = this.readUInt(data, offset, size);
+        offset += size;
+      }
+      // TrackType = 0x83
+      else if (id === 0x83) {
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.trackType = this.readUInt(data, offset, size);
+        offset += size;
+      }
+      // CodecID = 0x86
+      else if (id === 0x86) {
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.codecId = this.readString(data, offset, size);
+        offset += size;
+      }
+      // Language = 0x22B59C
+      else if (id === 0x22 && data[offset] === 0xB5 && data[offset + 1] === 0x9C) {
+        offset += 2;
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.language = this.readString(data, offset, size);
+        offset += size;
+      }
+      // Name = 0x536E
+      else if (id === 0x53 && data[offset] === 0x6E) {
+        offset++;
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.name = this.readString(data, offset, size);
+        offset += size;
+      }
+      // FlagDefault = 0x88
+      else if (id === 0x88) {
+        const [size, sizeLen] = this.readVInt(data, offset);
+        offset += sizeLen;
+        track.flagDefault = this.readUInt(data, offset, size) === 1;
+        offset += size;
+      }
+      else {
+        // Elemento desconocido, intentar saltar
+        if (offset < end - 1) {
+          const [size, sizeLen] = this.readVInt(data, offset);
+          offset += sizeLen + size;
+        } else {
+          offset++;
+        }
+      }
+    }
+
+    if (track.trackNumber !== undefined && track.trackType !== undefined) {
+      return track as MKVTrack;
+    }
+
+    return null;
+  }
+
+  private readVInt(data: Uint8Array, offset: number): [number, number] {
+    const firstByte = data[offset];
+    
+    // Determinar el número de bytes
+    let mask = 0x80;
+    let length = 1;
+    
+    while (length <= 8 && !(firstByte & mask)) {
+      mask >>= 1;
+      length++;
+    }
+    
+    if (length > 8) {
+      return [0, 1];
+    }
+    
+    let value = firstByte & (mask - 1);
+    
+    for (let i = 1; i < length; i++) {
+      value = (value << 8) | data[offset + i];
+    }
+    
+    return [value, length];
+  }
+
+  private readUInt(data: Uint8Array, offset: number, length: number): number {
+    let value = 0;
+    for (let i = 0; i < length; i++) {
+      value = (value << 8) | data[offset + i];
+    }
+    return value;
+  }
+
+  private readString(data: Uint8Array, offset: number, length: number): string {
+    const bytes = data.slice(offset, offset + length);
+    return new TextDecoder('utf-8').decode(bytes);
   }
 
   getAudioTracks(): MKVTrack[] {
