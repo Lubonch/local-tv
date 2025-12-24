@@ -7,11 +7,10 @@ import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
 import { VideoInfoOverlayComponent } from '../video-info-overlay/video-info-overlay';
 import { VolumeControlComponent } from '../volume-control/volume-control';
-import { SubtitleControlComponent, SubtitleTrack } from '../subtitle-control/subtitle-control';
 
 @Component({
   selector: 'app-video-player',
-  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent, SubtitleControlComponent],
+  imports: [CommonModule, OverlayComponent, VideoProgressBarComponent, VideoInfoOverlayComponent, VolumeControlComponent],
   templateUrl: './video-player.html',
   styleUrl: './video-player.css'
 })
@@ -36,10 +35,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   isMuted: boolean = false;
   private readonly VOLUME_STORAGE_KEY = 'video-volume';
   private readonly MUTE_STORAGE_KEY = 'video-muted';
-
-  subtitles: SubtitleTrack[] = [];
-  currentSubtitleIndex: number = -1;
-  private readonly SUBTITLE_STORAGE_KEY = 'video-subtitle-preference';
 
   constructor(
     private playlistService: PlaylistService,
@@ -78,6 +73,9 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.currentVideoUrl = URL.createObjectURL(nextVideo.file);
       this.error = null;
       this.isLoading = true;
+
+      // Reset volume to 100% when changing video
+      this.onVolumeChange(100);
 
       this.preloadNextVideo();
     } else {
@@ -126,7 +124,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (video) {
       this.duration = video.duration;
       this.applyVolume();
-      this.detectTracks();
       this.startTimeUpdate();
 
       video.play().catch(error => {
@@ -228,11 +225,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'M':
         event.preventDefault();
         this.onMuteToggle();
-        break;
-      case 'c':
-      case 'C':
-        event.preventDefault();
-        this.toggleSubtitles();
         break;
       case 'j':
       case 'J':
@@ -350,9 +342,10 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private adjustVolume(delta: number): void {
-    const newVolume = Math.max(0, Math.min(100, this.volume + delta));
+    const newVolume = Math.max(0, Math.min(400, this.volume + delta));
     this.onVolumeChange(newVolume);
   }
+<<<<<<< HEAD
 
   private detectSubtitles(): void {
     const video = this.videoElement?.nativeElement;
@@ -416,5 +409,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   }
+=======
+>>>>>>> develop
 }
 
