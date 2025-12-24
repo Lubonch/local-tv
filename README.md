@@ -71,23 +71,32 @@ MP4, MKV, WebM, AVI, MOV, M4V... básicamente cualquier formato que tu navegador
 
 **Recomendado**: MP4 con H.264 para mejor compatibilidad.
 
-### Subtítulos y Pistas de Audio en MKV
+### Soporte MKV
 
-**Limitación importante**: Los navegadores web NO pueden acceder a subtítulos o pistas de audio embebidos en archivos MKV. Solo pueden reproducir el video/audio por defecto.
+La aplicación **detecta automáticamente** las pistas de audio y subtítulos embebidos en archivos MKV usando un parser EBML.
 
-**Soluciones**:
+**Funcionalidades**:
 
-1. **Para subtítulos**: Extrae los subtítulos a archivos .srt separados usando:
-   - [MKVToolNix](https://mkvtoolnix.download/) - `mkvextract tracks video.mkv 2:subtitles.srt`
-   - [FFmpeg](https://ffmpeg.org/) - `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
-   
-2. **Para múltiples pistas de audio**: Remux el MKV seleccionando solo la pista deseada:
-   - `ffmpeg -i video.mkv -map 0:v -map 0:a:1 -c copy output.mkv`
+- ✅ **Detección de todas las pistas**: Audio y subtítulos embebidos se muestran en los menús
+- ✅ **Información completa**: Idioma, nombre de cada pista
+- ⚠️ **Limitación de navegadores**: Solo se puede reproducir el audio/video marcado como "default" en el MKV
 
-3. **Alternativa**: Convierte tus MKV a MP4:
-   - `ffmpeg -i video.mkv -c copy video.mp4`
+**Cambiar pistas de audio MKV**:
 
-Los archivos .srt con el mismo nombre que el video se cargarán automáticamente.
+Debido a limitaciones de los navegadores web, no es posible cambiar entre pistas de audio embebidas en tiempo real. Para usar una pista específica:
+
+1. **Ver qué pistas tiene el archivo**: La app te mostrará todas las pistas detectadas
+2. **Remuxear con la pista deseada**:
+
+```bash
+# Ejemplo: usar la segunda pista de audio (índice 1)
+ffmpeg -i video.mkv -map 0:v -map 0:a:1 -c copy video_audio2.mkv
+```
+
+**Subtítulos**: Los subtítulos embebidos se detectan y muestran en el menú, pero los navegadores no pueden renderizarlos directamente. Soluciones:
+
+- Convertir a MP4 (los subtítulos se mantendrán): `ffmpeg -i video.mkv -c copy video.mp4`
+- Extraer a .srt separado: `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
 
 ---
 
