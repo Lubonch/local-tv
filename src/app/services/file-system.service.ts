@@ -5,6 +5,15 @@ export interface VideoFile {
   name: string;
   path: string;
   url?: string;
+  isAd?: boolean;
+  adBlockIndex?: number;
+}
+
+export interface AdsConfig {
+  enabled: boolean;
+  frequency: number;
+  minAdsPerBreak: number;
+  maxAdsPerBreak: number;
 }
 
 @Injectable({

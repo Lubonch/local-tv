@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { AdsConfig } from './file-system.service';
 
 @Injectable({
   providedIn: 'root'
@@ -6,8 +7,10 @@ import { Injectable } from '@angular/core';
 export class StorageService {
   private readonly STORAGE_KEYS = {
     DIRECTORY_HANDLE: 'local_tv_directory_handle',
+    ADS_DIRECTORY_HANDLE: 'local_tv_ads_directory_handle',
     LAST_VIDEO_INDEX: 'local_tv_last_video_index',
-    VOLUME: 'local_tv_volume'
+    VOLUME: 'local_tv_volume',
+    ADS_CONFIG: 'local_tv_ads_config'
   };
 
   constructor() { }
@@ -98,6 +101,78 @@ export class StorageService {
     return volume ? parseFloat(volume) : 1.0;
   }
 
+  // === ADS FOLDER METHODS ===
+
+  async saveAdsFolder(handle: FileSystemDirectoryHandle): Promise<void> {
+    try {
+      const db = await this.openDatabase();
+      const transaction = db.transaction(['handles'], 'readwrite');
+      const store = transaction.objectStore('handles');
+
+      await store.put(handle, this.STORAGE_KEYS.ADS_DIRECTORY_HANDLE);
+
+      db.close();
+    } catch (error) {
+      console.error('Error guardando handle de carpeta de ads:', error);
+    }
+  }
+
+  async getAdsFolder(): Promise<FileSystemDirectoryHandle | null> {
+    try {
+      const db = await this.openDatabase();
+      const transaction = db.transaction(['handles'], 'readonly');
+      const store = transaction.objectStore('handles');
+
+      const request = store.get(this.STORAGE_KEYS.ADS_DIRECTORY_HANDLE);
+
+      const handle = await new Promise<FileSystemDirectoryHandle | null>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      db.close();
+
+      if (handle) {
+        const permission = await this.verifyPermission(handle);
+        if (permission) {
+          return handle;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error recuperando handle de carpeta de ads:', error);
+      return null;
+    }
+  }
+
+  async clearAdsFolder(): Promise<void> {
+    try {
+      const db = await this.openDatabase();
+      const transaction = db.transaction(['handles'], 'readwrite');
+      const store = transaction.objectStore('handles');
+
+      await store.delete(this.STORAGE_KEYS.ADS_DIRECTORY_HANDLE);
+
+      db.close();
+    } catch (error) {
+      console.error('Error eliminando handle de carpeta de ads:', error);
+    }
+  }
+
+  saveAdsConfig(config: AdsConfig): void {
+    localStorage.setItem(this.STORAGE_KEYS.ADS_CONFIG, JSON.stringify(config));
+  }
+
+  getAdsConfig(): AdsConfig | null {
+    const config = localStorage.getItem(this.STORAGE_KEYS.ADS_CONFIG);
+    return config ? JSON.parse(config) : null;
+  }
+
+  clearAdsConfig(): void {
+    localStorage.removeItem(this.STORAGE_KEYS.ADS_CONFIG);
+  }
+
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('LocalTVDB', 1);
@@ -122,7 +197,9 @@ export class StorageService {
 
   async clearAll(): Promise<void> {
     await this.clearDirectoryHandle();
+    await this.clearAdsFolder();
     localStorage.removeItem(this.STORAGE_KEYS.LAST_VIDEO_INDEX);
     localStorage.removeItem(this.STORAGE_KEYS.VOLUME);
+    localStorage.removeItem(this.STORAGE_KEYS.ADS_CONFIG);
   }
 }

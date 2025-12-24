@@ -85,6 +85,38 @@ Los subtítulos se detectan automáticamente desde:
 
 ---
 
+## Simulación de Comerciales
+
+Puedes agregar comerciales que se reproduzcan automáticamente entre tus videos normales, simulando la experiencia de TV tradicional.
+
+### Cómo Activar
+
+1. En la pantalla de selección de carpeta, activa "Intercalado de comerciales"
+2. Configura cada cuántos videos quieres que aparezcan comerciales (default: 3)
+3. Selecciona una carpeta que contenga solo tus videos de comerciales/anuncios
+4. ¡Listo! Los comerciales se reproducirán automáticamente
+
+### Características
+
+- Se reproducen de 1 a 5 comerciales aleatorios en cada bloque
+- Los comerciales no afectan el contador de videos reproducidos
+- La configuración se guarda automáticamente para la próxima sesión
+- Sin indicadores visuales - los comerciales se ven como videos normales
+- Puedes desactivar los comerciales en cualquier momento sin recargar
+
+### Ejemplo
+
+Si configuras frecuencia "3":
+```
+Video normal 1 → Video normal 2 → Video normal 3 
+→ [2 comerciales aleatorios] 
+→ Video normal 4 → Video normal 5 → Video normal 6 
+→ [4 comerciales aleatorios]
+→ ...
+```
+
+---
+
 ## Deploy en GitHub Pages
 
 Ya está configurado. Solo haz push a `main`:

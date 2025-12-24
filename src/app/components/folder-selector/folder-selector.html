@@ -16,6 +16,60 @@
           <button class="select-button" (click)="onSelectFolder()">
             Seleccionar Carpeta
           </button>
+
+          <!-- Sección de Comerciales (Opcional) -->
+          <div class="ads-section">
+            <h3 class="ads-title">Comerciales (Opcional)</h3>
+            
+            <div class="ads-checkbox-container">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="adsEnabled"
+                  (change)="onAdsEnabledChange()"
+                  class="ads-checkbox"
+                />
+                <span>Activar intercalado de comerciales</span>
+              </label>
+            </div>
+
+            @if (adsEnabled) {
+              <div class="ads-controls">
+                <div class="ads-frequency-container">
+                  <label class="frequency-label">
+                    Cada cuántos videos:
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="10" 
+                      [(ngModel)]="adsFrequency"
+                      (change)="onAdsFrequencyChange()"
+                      class="frequency-input"
+                    />
+                  </label>
+                  <span class="frequency-hint">videos normales</span>
+                </div>
+
+                <button class="ads-select-button" (click)="onSelectAdsFolder()">
+                  @if (adsVideoCount === 0) {
+                    Seleccionar Carpeta de Comerciales
+                  } @else {
+                    Cambiar Carpeta ({{ adsVideoCount }} comerciales)
+                  }
+                </button>
+
+                @if (adsVideoCount > 0) {
+                  <div class="ads-info">
+                    <p class="ads-count">✓ {{ adsVideoCount }} comerciales cargados</p>
+                    <p class="ads-detail">Se reproducirán 1-5 comerciales aleatorios cada {{ adsFrequency }} videos</p>
+                    <button class="ads-clear-button" (click)="clearAdsFolder()">
+                      Limpiar comerciales
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
       }
 
