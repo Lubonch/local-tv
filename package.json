@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production --base-href /local-tv/",
+    "deploy": "ng build --configuration production --base-href /local-tv/ && rm -rf docs && mkdir docs && cp -r dist/local-tv/browser/* docs/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:prod": "npx http-server dist/local-tv/browser -p 8080"
