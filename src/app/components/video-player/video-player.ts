@@ -122,6 +122,16 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const video = this.videoElement?.nativeElement;
     if (video) {
+      // Verificar si el video tiene dimensiones (problema común con H.265)
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        console.warn('Video cargado pero sin dimensiones - posible problema de codec H.265');
+        this.error = `El video "${this.currentVideo?.name}" parece estar codificado en H.265. ` +
+                    `Si usas Edge en Linux con h265ify, verifica que la extensión esté habilitada. ` +
+                    `Como alternativa, convierte el video a H.264: ffmpeg -i video.mp4 -c:v libx264 -c:a copy video_h264.mp4`;
+        this.loadNextVideo();
+        return;
+      }
+
       this.duration = video.duration;
       this.applyVolume();
       this.startTimeUpdate();

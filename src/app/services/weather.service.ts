@@ -100,13 +100,21 @@ export class WeatherService {
 
       let location = 'Tu ubicación';
       try {
-        const geoResponse = await this.http.get<ReverseGeocodingResponse>(geocodingUrl).toPromise();
+        const geoResponse = await this.http.get<any>(geocodingUrl).toPromise();
         if (geoResponse && geoResponse.results && geoResponse.results.length > 0) {
           const place = geoResponse.results[0];
-          location = place.admin1 ? `${place.name}, ${place.admin1}` : `${place.name}, ${place.country}`;
+          if (place.name) {
+            location = place.admin1 ? `${place.name}, ${place.admin1}` : `${place.name}, ${place.country}`;
+          } else {
+            console.warn('Respuesta de geocoding sin campo name:', place);
+            location = place.country || 'Ubicación desconocida';
+          }
+        } else {
+          console.warn('No se encontraron resultados de geocoding para las coordenadas');
         }
       } catch (geoError) {
         console.warn('No se pudo obtener nombre de ubicación:', geoError);
+        // Mantener 'Tu ubicación' como fallback
       }
 
       if (!weatherResponse || !weatherResponse.current) {
