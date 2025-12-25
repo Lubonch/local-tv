@@ -85,6 +85,31 @@ Los subtítulos se detectan automáticamente desde:
 - Extrae los subtítulos a .srt: `ffmpeg -i video.mkv -map 0:s:0 subtitles.srt`
 - O convierte a MP4: `ffmpeg -i video.mkv -c copy video.mp4`
 
+### Problemas Conocidos con H.265/HEVC
+
+Los archivos MP4 codificados en H.265 pueden tener problemas de reproducción:
+
+**Síntoma**: Se escucha audio pero no se ve imagen
+**Causa**: H.265 no está soportado nativamente en la mayoría de navegadores
+
+**Soluciones**:
+
+1. **En Edge Linux con extensión h265ify**:
+   - Verifica que h265ify esté habilitado para `localhost` y `file://`
+   - Si no funciona, desactiva la extensión y convierte los videos
+
+2. **Convertir a H.264** (recomendado):
+   ```bash
+   ffmpeg -i video_h265.mp4 -c:v libx264 -c:a copy video_h264.mp4
+   ```
+
+3. **Convertir a WebM VP9**:
+   ```bash
+   ffmpeg -i video.mp4 -c:v libvpx-vp9 -c:a libopus video.webm
+   ```
+
+**Nota**: La app detectará automáticamente videos H.265 problemáticos y mostrará un mensaje de error específico.
+
 ---
 
 ## Deploy en GitHub Pages
