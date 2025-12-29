@@ -110,6 +110,21 @@ Los archivos MP4 codificados en H.265 pueden tener problemas de reproducción:
 
 **Nota**: La app detectará automáticamente videos H.265 problemáticos y mostrará un mensaje de error específico.
 
+### Problemas con Symlinks
+
+**Comportamiento esperado**: Los symlinks que apuntan fuera de la carpeta seleccionada **NO serán accesibles** por restricciones de seguridad del navegador.
+
+**Por qué ocurre**:
+- La File System Access API solo permite acceso a archivos dentro del directorio seleccionado
+- Los symlinks que apuntan fuera de este directorio son bloqueados por seguridad
+- Esto previene acceso no autorizado a otras partes del sistema de archivos
+
+**Soluciones**:
+1. **Copia los archivos** en lugar de usar symlinks
+2. **Selecciona la carpeta raíz** que contenga tanto los archivos reales como los symlinks
+3. **Usa enlaces duros** (`ln archivo.mp4 enlace.mp4`) en lugar de symlinks suaves
+4. **Organiza tus videos** en una estructura de carpetas normal sin symlinks
+
 ---
 
 ## Deploy en GitHub Pages

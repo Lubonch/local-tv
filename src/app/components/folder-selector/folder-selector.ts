@@ -119,7 +119,8 @@ export class FolderSelectorComponent implements OnInit {
       this.loadingProgress = 95;
 
       if (videos.length === 0) {
-        this.error = 'No se encontraron videos en la carpeta seleccionada';
+        this.error = 'No se encontraron videos en la carpeta seleccionada. ' +
+                    'Nota: Los symlinks que apuntan fuera de la carpeta seleccionada no son accesibles por seguridad.';
         this.isLoading = false;
         this.loadingProgress = 0;
         return;
@@ -136,7 +137,8 @@ export class FolderSelectorComponent implements OnInit {
       }, 500);
     } catch (error: any) {
       console.error('Error cargando videos:', error);
-      this.error = error.message || 'Error al cargar videos';
+      this.error = error.message || 'Error al cargar videos. ' +
+                  'Si usas symlinks, verifica que apunten dentro de la carpeta seleccionada.';
       this.isLoading = false;
       this.loadingProgress = 0;
     }

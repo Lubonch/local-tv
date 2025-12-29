@@ -63,26 +63,37 @@ export class FileSystemService {
 
         if (entry.kind === 'file') {
           if (this.isVideoFile(entry.name)) {
-            const fileHandle = entry as FileSystemFileHandle;
-            const file = await fileHandle.getFile();
+            try {
+              const fileHandle = entry as FileSystemFileHandle;
+              const file = await fileHandle.getFile();
 
-            videos.push({
-              file: file,
-              name: entry.name,
-              path: path
-            });
+              videos.push({
+                file: file,
+                name: entry.name,
+                path: path
+              });
 
-            if (progressCallback) {
-              progressCallback(videos.length, videos.length);
+              if (progressCallback) {
+                progressCallback(videos.length, videos.length);
+              }
+            } catch (fileError: any) {
+              console.warn(`No se pudo acceder al archivo "${path}":`, fileError.message);
+              // Continuar con el siguiente archivo - no bloquear todo el escaneo
             }
           }
         } else if (entry.kind === 'directory') {
-          const subDirHandle = entry as FileSystemDirectoryHandle;
-          await this.scanDirectory(subDirHandle, videos, path, progressCallback);
+          try {
+            const subDirHandle = entry as FileSystemDirectoryHandle;
+            await this.scanDirectory(subDirHandle, videos, path, progressCallback);
+          } catch (dirError: any) {
+            console.warn(`No se pudo acceder al directorio "${path}":`, dirError.message);
+            // Continuar con el siguiente directorio
+          }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error escaneando directorio:', error);
+      // No relanzar el error para no detener todo el proceso
     }
   }
 
