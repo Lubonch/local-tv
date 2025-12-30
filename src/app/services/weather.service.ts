@@ -107,16 +107,6 @@ export class WeatherService {
     this.weatherDataSubject.next(fallbackData);
     this.errorSubject.next(null);
   }
-        temperature: 999,
-        feelsLike: 999,
-        description: 'Servicio temporalmente no disponible',
-        location: 'Tu ubicación',
-        weatherCode: -1
-      };
-      this.weatherDataSubject.next(fallbackData);
-      this.errorSubject.next(null);
-    }
-  }
 
   private getCurrentPosition(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
