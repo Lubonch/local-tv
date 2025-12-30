@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 
 export interface YouTubeVideo {
   videoId: string;
@@ -19,7 +20,7 @@ export interface YouTubePlaylistResponse {
   providedIn: 'root'
 })
 export class YouTubeService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private logger: LoggerService) {}
 
   /**
    * Extrae el ID de playlist de una URL de YouTube
@@ -52,7 +53,7 @@ export class YouTubeService {
       return response.videos;
 
     } catch (error) {
-      console.error('Error getting playlist:', error);
+      this.logger.error('Error getting playlist:', error);
       throw new Error('No se pudo obtener la playlist de YouTube. Verifica que la URL sea válida y que la playlist sea pública.');
     }
   }

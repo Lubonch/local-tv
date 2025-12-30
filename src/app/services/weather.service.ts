@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, interval } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggerService } from './logger.service';
 
 export interface WeatherData {
   temperature: number;
@@ -42,7 +43,7 @@ export class WeatherService {
 
   private updateInterval: any;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private logger: LoggerService) { }
 
   async startWeatherUpdates(): Promise<void> {
     await this.updateWeather();
@@ -62,7 +63,7 @@ export class WeatherService {
       this.errorSubject.next(null);
       return; // ✅ Éxito con Open-Meteo
     } catch (error) {
-      console.error('Error obteniendo datos del clima con Open-Meteo:', error);
+      this.logger.error('Error obteniendo datos del clima con Open-Meteo:', error);
     }
 
     // 🔄 FALLBACK 1: Intentar wttr.in si Open-Meteo falló
@@ -84,15 +85,15 @@ export class WeatherService {
           this.errorSubject.next(null);
           return; // ✅ Éxito con wttr.in
         } else {
-          console.warn('Respuesta inválida de wttr.in:', altResponse);
+          this.logger.warn('Respuesta inválida de wttr.in:', altResponse);
         }
       } catch (altError) {
-        console.warn('❌ wttr.in también falló:', altError);
+        this.logger.warn('wttr.in también falló:', altError);
       }
     }
 
     // ❌ FALLBACK FINAL: Si todas las APIs fallaron
-    console.error('Todas las APIs de clima fallaron (Open-Meteo, wttr.in), usando datos de fallback');
+    this.logger.error('Todas las APIs de clima fallaron (Open-Meteo, wttr.in), usando datos de fallback');
     const fallbackData: WeatherData = {
       temperature: 999,
       feelsLike: 999,

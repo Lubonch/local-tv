@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } fr
 import { PlaylistService } from '../../services/playlist.service';
 import { VideoFile } from '../../services/file-system.service';
 import { StorageService } from '../../services/storage.service';
+import { LoggerService } from '../../services/logger.service';
 import { CommonModule } from '@angular/common';
 import { OverlayComponent } from '../overlay/overlay';
 import { VideoProgressBarComponent } from '../video-progress-bar/video-progress-bar';
@@ -38,7 +39,8 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private playlistService: PlaylistService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private logger: LoggerService
   ) { }
 
   ngOnInit(): void {
@@ -100,7 +102,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onVideoError(event: Event): void {
-    console.error('Error cargando video:', this.currentVideo?.name);
+    this.logger.error('Error cargando video:', this.currentVideo?.name);
     this.errorCount++;
 
     if (this.errorCount >= this.maxConsecutiveErrors) {
@@ -123,7 +125,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (video) {
       // Verificar si el video tiene dimensiones (problema común con H.265)
       if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.warn('Video cargado pero sin dimensiones - posible problema de codec H.265');
+        this.logger.warn('Video cargado pero sin dimensiones - posible problema de codec H.265');
         this.error = `El video "${this.currentVideo?.name}" parece estar codificado en H.265. ` +
                     `Si usas Edge en Linux con h265ify, verifica que la extensión esté habilitada. ` +
                     `Como alternativa, convierte el video a H.264: ffmpeg -i video.mp4 -c:v libx264 -c:a copy video_h264.mp4`;
@@ -136,7 +138,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
       this.startTimeUpdate();
 
       video.play().catch(error => {
-        console.error('Error al reproducir video:', error);
+        this.logger.error('Error al reproducir video:', error);
       });
     }
   }
