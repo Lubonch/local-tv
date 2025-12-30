@@ -184,6 +184,9 @@ Verifica que permitiste la geolocalización.
 **¿El clima no se actualiza?**  
 Si Open-Meteo está caído, la app automáticamente usa wttr.in como respaldo. Si ambas fallan, verás "Servicio temporalmente no disponible".
 
+**¿Cada cuánto se actualiza el clima?**  
+Cada **hora** para no sobrecargar las APIs gratuitas.
+
 **¿Cuántos videos puede manejar?**  
 Miles. Escanea recursivamente todas las subcarpetas.
 
