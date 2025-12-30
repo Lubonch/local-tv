@@ -30,6 +30,51 @@ interface ReverseGeocodingResponse {
   }>;
 }
 
+interface OpenWeatherMapResponse {
+  main: {
+    temp: number;
+    feels_like: number;
+  };
+  weather: Array<{
+    description: string;
+    id: number;
+  }>;
+  name: string;
+}
+
+interface WeatherAPIResponse {
+  current: {
+    temp_c: number;
+    feelslike_c: number;
+    condition: {
+      text: string;
+      code: number;
+    };
+  };
+  location: {
+    name: string;
+    region?: string;
+    country: string;
+  };
+}
+
+interface AccuWeatherResponse {
+  [0]: {
+    Temperature: {
+      Metric: {
+        Value: number;
+      };
+    };
+    RealFeelTemperature: {
+      Metric: {
+        Value: number;
+      };
+    };
+    WeatherText: string;
+    WeatherIcon: number;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -65,10 +110,10 @@ export class WeatherService {
       console.error('Error obteniendo datos del clima con Open-Meteo:', error);
     }
 
-    // 🔄 FALLBACK: Intentar wttr.in si Open-Meteo falló
+    // 🔄 FALLBACK 1: Intentar wttr.in si Open-Meteo falló
     if (position) {
       try {
-        console.log('🔄 Intentando API alternativa (wttr.in)...');
+        console.log('🔄 Intentando API alternativa 1 (wttr.in)...');
         const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
         const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
 
@@ -81,7 +126,7 @@ export class WeatherService {
             location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
             weatherCode: -1
           };
-          console.log('✅ Usando API alternativa exitosamente');
+          console.log('✅ Usando wttr.in exitosamente');
           this.weatherDataSubject.next(altWeatherData);
           this.errorSubject.next(null);
           return; // ✅ Éxito con wttr.in
@@ -89,14 +134,60 @@ export class WeatherService {
           console.warn('Respuesta inválida de wttr.in:', altResponse);
         }
       } catch (altError) {
-        console.warn('❌ API alternativa (wttr.in) también falló:', altError);
+        console.warn('❌ wttr.in también falló:', altError);
       }
-    } else {
-      console.warn('No se pudo obtener la posición para el respaldo');
     }
 
-    // ❌ FALLBACK FINAL: Si todo falló
-    console.error('Todas las APIs de clima fallaron, usando datos de fallback');
+    // 🔄 FALLBACK 2: Intentar OpenWeatherMap si las anteriores fallaron
+    if (position && environment.openWeatherMapApiKey) {
+      try {
+        console.log('🔄 Intentando API alternativa 2 (OpenWeatherMap)...');
+        const weatherData = await this.fetchOpenWeatherMapData(position.coords.latitude, position.coords.longitude);
+        console.log('✅ Usando OpenWeatherMap exitosamente');
+        this.weatherDataSubject.next(weatherData);
+        this.errorSubject.next(null);
+        return; // ✅ Éxito con OpenWeatherMap
+      } catch (error) {
+        console.warn('❌ OpenWeatherMap también falló:', error);
+      }
+    } else if (position && !environment.openWeatherMapApiKey) {
+      console.warn('⚠️ OpenWeatherMap API key no configurada, saltando...');
+    }
+
+    // 🔄 FALLBACK 3: Intentar WeatherAPI si las anteriores fallaron
+    if (position && environment.weatherApiKey) {
+      try {
+        console.log('🔄 Intentando API alternativa 3 (WeatherAPI)...');
+        const weatherData = await this.fetchWeatherAPIData(position.coords.latitude, position.coords.longitude);
+        console.log('✅ Usando WeatherAPI exitosamente');
+        this.weatherDataSubject.next(weatherData);
+        this.errorSubject.next(null);
+        return; // ✅ Éxito con WeatherAPI
+      } catch (error) {
+        console.warn('❌ WeatherAPI también falló:', error);
+      }
+    } else if (position && !environment.weatherApiKey) {
+      console.warn('⚠️ WeatherAPI key no configurada, saltando...');
+    }
+
+    // 🔄 FALLBACK 4: Intentar AccuWeather si las anteriores fallaron
+    if (position && environment.accuWeatherApiKey) {
+      try {
+        console.log('🔄 Intentando API alternativa 4 (AccuWeather)...');
+        const weatherData = await this.fetchAccuWeatherData(position.coords.latitude, position.coords.longitude);
+        console.log('✅ Usando AccuWeather exitosamente');
+        this.weatherDataSubject.next(weatherData);
+        this.errorSubject.next(null);
+        return; // ✅ Éxito con AccuWeather
+      } catch (error) {
+        console.warn('❌ AccuWeather también falló:', error);
+      }
+    } else if (position && !environment.accuWeatherApiKey) {
+      console.warn('⚠️ AccuWeather API key no configurada, saltando...');
+    }
+
+    // ❌ FALLBACK FINAL: Si todas las APIs fallaron
+    console.error('Todas las APIs de clima fallaron (Open-Meteo, wttr.in, OpenWeatherMap, WeatherAPI, AccuWeather), usando datos de fallback');
     const fallbackData: WeatherData = {
       temperature: 999,
       feelsLike: 999,
@@ -161,6 +252,83 @@ export class WeatherService {
     };
 
     return weatherData;
+  }
+
+  private async fetchOpenWeatherMapData(lat: number, lon: number): Promise<WeatherData> {
+    if (!environment.openWeatherMapApiKey) {
+      throw new Error('OpenWeatherMap API key no configurada');
+    }
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${environment.openWeatherMapApiKey}&units=metric&lang=es`;
+    const response = await this.http.get<OpenWeatherMapResponse>(url).toPromise();
+
+    if (!response || !response.main || !response.weather || response.weather.length === 0) {
+      throw new Error('Respuesta inválida de OpenWeatherMap');
+    }
+
+    return {
+      temperature: Math.round(response.main.temp) || 999,
+      feelsLike: Math.round(response.main.feels_like) || 999,
+      description: response.weather[0].description || 'No disponible',
+      location: response.name || 'Tu ubicación',
+      weatherCode: response.weather[0].id || -1
+    };
+  }
+
+  private async fetchWeatherAPIData(lat: number, lon: number): Promise<WeatherData> {
+    if (!environment.weatherApiKey) {
+      throw new Error('WeatherAPI key no configurada');
+    }
+
+    const url = `https://api.weatherapi.com/v1/current.json?key=${environment.weatherApiKey}&q=${lat},${lon}&lang=es`;
+    const response = await this.http.get<WeatherAPIResponse>(url).toPromise();
+
+    if (!response || !response.current || !response.location) {
+      throw new Error('Respuesta inválida de WeatherAPI');
+    }
+
+    return {
+      temperature: Math.round(response.current.temp_c) || 999,
+      feelsLike: Math.round(response.current.feelslike_c) || 999,
+      description: response.current.condition.text || 'No disponible',
+      location: response.location.region
+        ? `${response.location.name}, ${response.location.region}`
+        : `${response.location.name}, ${response.location.country}`,
+      weatherCode: response.current.condition.code || -1
+    };
+  }
+
+  private async fetchAccuWeatherData(lat: number, lon: number): Promise<WeatherData> {
+    if (!environment.accuWeatherApiKey) {
+      throw new Error('AccuWeather API key no configurada');
+    }
+
+    // Primero necesitamos obtener el Location Key de AccuWeather
+    const locationUrl = `https://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey=${environment.accuWeatherApiKey}&q=${lat},${lon}&language=es`;
+    const locationResponse = await this.http.get<any>(locationUrl).toPromise();
+
+    if (!locationResponse || !locationResponse.Key) {
+      throw new Error('No se pudo obtener Location Key de AccuWeather');
+    }
+
+    const locationKey = locationResponse.Key;
+    const weatherUrl = `https://dataservice.accuweather.com/currentconditions/v1/${locationKey}?apikey=${environment.accuWeatherApiKey}&language=es&details=true`;
+    const weatherResponse = await this.http.get<AccuWeatherResponse>(weatherUrl).toPromise();
+
+    if (!weatherResponse || !weatherResponse[0]) {
+      throw new Error('Respuesta inválida de AccuWeather');
+    }
+
+    const current = weatherResponse[0];
+    return {
+      temperature: Math.round(current.Temperature.Metric.Value) || 999,
+      feelsLike: Math.round(current.RealFeelTemperature.Metric.Value) || 999,
+      description: current.WeatherText || 'No disponible',
+      location: locationResponse.LocalizedName
+        ? `${locationResponse.LocalizedName}, ${locationResponse.AdministrativeArea?.LocalizedName || ''}`
+        : 'Tu ubicación',
+      weatherCode: current.WeatherIcon || -1
+    };
   }
 
   private getWeatherDescription(code: number): string {
