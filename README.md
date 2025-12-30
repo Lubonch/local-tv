@@ -170,10 +170,10 @@ Firefox (soporte limitado)
 ## Preguntas Frecuentes
 
 **¿Necesito API keys?**  
-No. Todo funciona sin configuración.
+No para uso básico. Pero para máxima confiabilidad del clima, puedes configurar API keys gratuitas adicionales.
 
 **¿Funciona sin internet?**  
-Sí, excepto por la temperatura (usa Open-Meteo API gratuita).
+Sí, excepto por la temperatura (usa múltiples APIs gratuitas).
 
 **¿Guarda mi carpeta?**  
 Sí, usando IndexedDB. No en modo incógnito.
@@ -182,7 +182,25 @@ Sí, usando IndexedDB. No en modo incógnito.
 Verifica que permitiste la geolocalización.
 
 **¿El clima no se actualiza?**  
-Si Open-Meteo está caído, la app automáticamente usa wttr.in como respaldo. Si ambas fallan, verás "Servicio temporalmente no disponible".
+La app tiene 5 niveles de respaldo:
+1. Open-Meteo (primario, sin API key)
+2. wttr.in (respaldo gratuito)
+3. OpenWeatherMap (opcional, 1,000 consultas/día gratis)
+4. WeatherAPI (opcional, 1 millón de consultas/mes gratis)
+5. AccuWeather (opcional, límite generoso gratis)
+
+Si todas fallan, verás "Servicio temporalmente no disponible".
+
+**¿Cómo configurar APIs adicionales?**
+```typescript
+// En src/environments/environment.ts
+export const environment = {
+  // ... otras configuraciones
+  openWeatherMapApiKey: 'tu-api-key-aqui', // https://openweathermap.org/api
+  weatherApiKey: 'tu-api-key-aqui',        // https://www.weatherapi.com/
+  accuWeatherApiKey: 'tu-api-key-aqui'     // https://developer.accuweather.com/
+};
+```
 
 **¿Cuántos videos puede manejar?**  
 Miles. Escanea recursivamente todas las subcarpetas.
@@ -191,7 +209,7 @@ Miles. Escanea recursivamente todas las subcarpetas.
 
 ## Tecnología
 
-Angular 20 + File System Access API + Geolocation API + Open-Meteo API + wttr.in (respaldo)
+Angular 20 + File System Access API + Geolocation API + Open-Meteo API + wttr.in + OpenWeatherMap + WeatherAPI + AccuWeather (sistema de respaldo múltiple)
 
 ---
 
