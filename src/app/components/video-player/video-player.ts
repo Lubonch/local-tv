@@ -96,7 +96,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onVideoEnded(): void {
-    console.log('Video terminado, cargando siguiente...');
     this.loadNextVideo();
   }
 
@@ -170,7 +169,6 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (playlist.length > 1 && currentIndex < playlist.length - 1) {
       this.nextVideo = playlist[currentIndex + 1];
-      console.log('Siguiente video precargado:', this.nextVideo.name);
     }
   }
 
@@ -190,7 +188,7 @@ export class VideoPlayerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (videoContainer) {
       if (videoContainer.requestFullscreen) {
         videoContainer.requestFullscreen().catch(err => {
-          console.log('No se pudo entrar en pantalla completa:', err);
+          console.error('No se pudo entrar en pantalla completa:', err);
         });
       }
     }

@@ -5,13 +5,14 @@ export interface VideoFile {
   name: string;
   path: string;
   url?: string;
+  folderIndex?: number; // Para identificar de qué carpeta viene
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileSystemService {
-  private directoryHandle: FileSystemDirectoryHandle | null = null;
+  private directoryHandles: (FileSystemDirectoryHandle | null)[] = [null, null];
   private readonly VIDEO_EXTENSIONS = [
     '.mp4', '.mkv', '.webm', '.avi', '.mov',
     '.m4v', '.wmv', '.flv', '.ogv', '.3gp'
@@ -19,17 +20,17 @@ export class FileSystemService {
 
   constructor() { }
 
-  async selectFolder(): Promise<FileSystemDirectoryHandle | null> {
+  async selectFolder(folderIndex: number = 0): Promise<FileSystemDirectoryHandle | null> {
     try {
       if (!('showDirectoryPicker' in window)) {
         throw new Error('File System Access API no está soportada en este navegador');
       }
 
-      this.directoryHandle = await (window as any).showDirectoryPicker({
+      this.directoryHandles[folderIndex] = await (window as any).showDirectoryPicker({
         mode: 'read'
       });
 
-      return this.directoryHandle;
+      return this.directoryHandles[folderIndex];
     } catch (error) {
       console.error('Error seleccionando carpeta:', error);
       return null;
@@ -37,17 +38,27 @@ export class FileSystemService {
   }
 
   async scanForVideos(
-    dirHandle?: FileSystemDirectoryHandle,
+    folderIndices: number[] = [0, 1],
     progressCallback?: (current: number, total: number) => void
   ): Promise<VideoFile[]> {
-    const handle = dirHandle || this.directoryHandle;
+    const videos: VideoFile[] = [];
 
-    if (!handle) {
-      throw new Error('No hay carpeta seleccionada');
+    for (const folderIndex of folderIndices) {
+      const handle = this.directoryHandles[folderIndex];
+      if (handle) {
+        try {
+          await this.scanDirectory(handle, videos, '', progressCallback, folderIndex);
+        } catch (error) {
+          console.warn(`Error escaneando carpeta ${folderIndex + 1}:`, error);
+          // Continuar con la siguiente carpeta
+        }
+      }
     }
 
-    const videos: VideoFile[] = [];
-    await this.scanDirectory(handle, videos, '', progressCallback);
+    if (videos.length === 0) {
+      throw new Error('No hay carpetas seleccionadas o no se encontraron videos');
+    }
+
     return videos;
   }
 
@@ -55,7 +66,8 @@ export class FileSystemService {
     dirHandle: FileSystemDirectoryHandle,
     videos: VideoFile[],
     currentPath: string,
-    progressCallback?: (current: number, total: number) => void
+    progressCallback?: (current: number, total: number) => void,
+    folderIndex: number = 0
   ): Promise<void> {
     try {
       for await (const entry of dirHandle.values()) {
@@ -70,7 +82,8 @@ export class FileSystemService {
               videos.push({
                 file: file,
                 name: entry.name,
-                path: path
+                path: path,
+                folderIndex: folderIndex
               });
 
               if (progressCallback) {
@@ -84,7 +97,7 @@ export class FileSystemService {
         } else if (entry.kind === 'directory') {
           try {
             const subDirHandle = entry as FileSystemDirectoryHandle;
-            await this.scanDirectory(subDirHandle, videos, path, progressCallback);
+            await this.scanDirectory(subDirHandle, videos, path, progressCallback, folderIndex);
           } catch (dirError: any) {
             console.warn(`No se pudo acceder al directorio "${path}":`, dirError.message);
             // Continuar con el siguiente directorio
@@ -102,12 +115,28 @@ export class FileSystemService {
     return this.VIDEO_EXTENSIONS.some(ext => lowerFilename.endsWith(ext));
   }
 
-  getDirectoryHandle(): FileSystemDirectoryHandle | null {
-    return this.directoryHandle;
+  getDirectoryHandle(folderIndex: number = 0): FileSystemDirectoryHandle | null {
+    return this.directoryHandles[folderIndex] || null;
   }
 
-  setDirectoryHandle(handle: FileSystemDirectoryHandle): void {
-    this.directoryHandle = handle;
+  setDirectoryHandle(handle: FileSystemDirectoryHandle, folderIndex: number = 0): void {
+    this.directoryHandles[folderIndex] = handle;
+  }
+
+  getAllDirectoryHandles(): (FileSystemDirectoryHandle | null)[] {
+    return [...this.directoryHandles];
+  }
+
+  hasAnyDirectory(): boolean {
+    return this.directoryHandles.some(handle => handle !== null);
+  }
+
+  clearDirectoryHandle(folderIndex: number = 0): void {
+    this.directoryHandles[folderIndex] = null;
+  }
+
+  clearAllDirectoryHandles(): void {
+    this.directoryHandles = [null, null];
   }
 
   isSupported(): boolean {

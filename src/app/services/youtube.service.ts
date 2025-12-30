@@ -38,7 +38,6 @@ export class YouTubeService {
    */
   async getPlaylistVideos(playlistId: string): Promise<YouTubeVideo[]> {
     try {
-      console.log(`Getting playlist from proxy: ${playlistId}`);
 
       const apiUrl = environment.production
         ? `https://inv.nadeko.net/api/v1/playlists/${playlistId}`
@@ -50,7 +49,6 @@ export class YouTubeService {
         })
       );
 
-      console.log(`✓ Playlist obtained: ${response.title} (${response.videos.length} videos)`);
       return response.videos;
 
     } catch (error) {

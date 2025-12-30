@@ -28,9 +28,9 @@ export class PlaylistService {
     this.shuffle();
     this.currentIndex = -1;
     this.playedIndices = [];
-    this.playlistLoadedSubject.next(true);
+    // Emitimos asincrónicamente para evitar ExpressionChangedAfterItHasBeenCheckedError
+    Promise.resolve().then(() => this.playlistLoadedSubject.next(true));
 
-    console.log(`Playlist cargada con ${this.videos.length} videos`);
   }
 
   private shuffle(): void {
@@ -48,7 +48,6 @@ export class PlaylistService {
     if (this.playedIndices.length >= this.videos.length) {
       this.playedIndices = [];
       this.shuffle();
-      console.log('Todos los videos reproducidos. Mezclando de nuevo...');
     }
 
     let nextIndex: number;
@@ -62,7 +61,6 @@ export class PlaylistService {
     const video = this.videos[this.currentIndex];
     this.currentVideoSubject.next(video);
 
-    console.log(`Reproduciendo: ${video.name} (${this.playedIndices.length}/${this.videos.length})`);
 
     return video;
   }
