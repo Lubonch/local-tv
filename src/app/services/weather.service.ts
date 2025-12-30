@@ -63,17 +63,18 @@ export class WeatherService {
 
       // Intentar API alternativa antes de fallback
       try {
-        console.log('Intentando API alternativa (WeatherAPI)...');
+        console.log('Intentando API alternativa (wttr.in)...');
         const position = await this.getCurrentPosition();
-        const altWeatherUrl = `https://api.weatherapi.com/v1/current.json?q=${position.coords.latitude},${position.coords.longitude}&lang=es`;
+        const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
         const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
 
-        if (altResponse && altResponse.current) {
+        if (altResponse && altResponse.current_condition && altResponse.current_condition.length > 0) {
+          const current = altResponse.current_condition[0];
           const altWeatherData: WeatherData = {
-            temperature: Math.round(altResponse.current.temp_c) || 999,
-            feelsLike: Math.round(altResponse.current.feelslike_c) || 999,
-            description: altResponse.current.condition?.text || 'No disponible',
-            location: altResponse.location?.name || 'Tu ubicación',
+            temperature: parseInt(current.temp_C) || 999,
+            feelsLike: parseInt(current.FeelsLikeC) || parseInt(current.temp_C) || 999,
+            description: current.weatherDesc?.[0]?.value || 'No disponible',
+            location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
             weatherCode: -1
           };
           console.log('✅ Usando API alternativa exitosamente');

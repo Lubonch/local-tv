@@ -182,7 +182,7 @@ Sí, usando IndexedDB. No en modo incógnito.
 Verifica que permitiste la geolocalización.
 
 **¿El clima no se actualiza?**  
-Si Open-Meteo está caído, la app automáticamente usa WeatherAPI como respaldo. Si ambas fallan, verás "Servicio temporalmente no disponible".
+Si Open-Meteo está caído, la app automáticamente usa wttr.in como respaldo. Si ambas fallan, verás "Servicio temporalmente no disponible".
 
 **¿Cuántos videos puede manejar?**  
 Miles. Escanea recursivamente todas las subcarpetas.
@@ -191,7 +191,7 @@ Miles. Escanea recursivamente todas las subcarpetas.
 
 ## Tecnología
 
-Angular 20 + File System Access API + Geolocation API + Open-Meteo API + WeatherAPI (respaldo)
+Angular 20 + File System Access API + Geolocation API + Open-Meteo API + wttr.in (respaldo)
 
 ---
 
