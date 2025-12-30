@@ -53,8 +53,10 @@ export class WeatherService {
   }
 
   private async updateWeather(): Promise<void> {
+    let position: GeolocationPosition | null = null;
+
     try {
-      const position = await this.getCurrentPosition();
+      position = await this.getCurrentPosition();
       const weatherData = await this.fetchWeatherData(position.coords.latitude, position.coords.longitude);
       this.weatherDataSubject.next(weatherData);
       this.errorSubject.next(null);
@@ -62,28 +64,31 @@ export class WeatherService {
       console.error('Error obteniendo datos del clima:', error);
 
       // Intentar API alternativa antes de fallback
-      try {
-        console.log('Intentando API alternativa (wttr.in)...');
-        const position = await this.getCurrentPosition();
-        const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
-        const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
+      if (position) {
+        try {
+          console.log('Intentando API alternativa (wttr.in)...');
+          const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
+          const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
 
-        if (altResponse && altResponse.current_condition && altResponse.current_condition.length > 0) {
-          const current = altResponse.current_condition[0];
-          const altWeatherData: WeatherData = {
-            temperature: parseInt(current.temp_C) || 999,
-            feelsLike: parseInt(current.FeelsLikeC) || parseInt(current.temp_C) || 999,
-            description: current.weatherDesc?.[0]?.value || 'No disponible',
-            location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
-            weatherCode: -1
-          };
-          console.log('✅ Usando API alternativa exitosamente');
-          this.weatherDataSubject.next(altWeatherData);
-          this.errorSubject.next(null);
-          return;
+          if (altResponse && altResponse.current_condition && altResponse.current_condition.length > 0) {
+            const current = altResponse.current_condition[0];
+            const altWeatherData: WeatherData = {
+              temperature: parseInt(current.temp_C) || 999,
+              feelsLike: parseInt(current.FeelsLikeC) || parseInt(current.temp_C) || 999,
+              description: current.weatherDesc?.[0]?.value || 'No disponible',
+              location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
+              weatherCode: -1
+            };
+            console.log('✅ Usando API alternativa exitosamente');
+            this.weatherDataSubject.next(altWeatherData);
+            this.errorSubject.next(null);
+            return;
+          }
+        } catch (altError) {
+          console.warn('API alternativa también falló:', altError);
         }
-      } catch (altError) {
-        console.warn('API alternativa también falló:', altError);
+      } else {
+        console.warn('No se pudo obtener la posición para el respaldo');
       }
 
       // Fallback final
