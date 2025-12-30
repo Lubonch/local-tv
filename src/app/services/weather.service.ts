@@ -60,39 +60,53 @@ export class WeatherService {
       const weatherData = await this.fetchWeatherData(position.coords.latitude, position.coords.longitude);
       this.weatherDataSubject.next(weatherData);
       this.errorSubject.next(null);
+      return; // ✅ Éxito con Open-Meteo
     } catch (error) {
-      console.error('Error obteniendo datos del clima:', error);
+      console.error('Error obteniendo datos del clima con Open-Meteo:', error);
+    }
 
-      // Intentar API alternativa antes de fallback
-      if (position) {
-        try {
-          console.log('Intentando API alternativa (wttr.in)...');
-          const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
-          const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
+    // 🔄 FALLBACK: Intentar wttr.in si Open-Meteo falló
+    if (position) {
+      try {
+        console.log('🔄 Intentando API alternativa (wttr.in)...');
+        const altWeatherUrl = `https://wttr.in/${position.coords.latitude},${position.coords.longitude}?format=j1&lang=es`;
+        const altResponse = await this.http.get<any>(altWeatherUrl).toPromise();
 
-          if (altResponse && altResponse.current_condition && altResponse.current_condition.length > 0) {
-            const current = altResponse.current_condition[0];
-            const altWeatherData: WeatherData = {
-              temperature: parseInt(current.temp_C) || 999,
-              feelsLike: parseInt(current.FeelsLikeC) || parseInt(current.temp_C) || 999,
-              description: current.weatherDesc?.[0]?.value || 'No disponible',
-              location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
-              weatherCode: -1
-            };
-            console.log('✅ Usando API alternativa exitosamente');
-            this.weatherDataSubject.next(altWeatherData);
-            this.errorSubject.next(null);
-            return;
-          }
-        } catch (altError) {
-          console.warn('API alternativa también falló:', altError);
+        if (altResponse && altResponse.current_condition && altResponse.current_condition.length > 0) {
+          const current = altResponse.current_condition[0];
+          const altWeatherData: WeatherData = {
+            temperature: parseInt(current.temp_C) || 999,
+            feelsLike: parseInt(current.FeelsLikeC) || parseInt(current.temp_C) || 999,
+            description: current.weatherDesc?.[0]?.value || 'No disponible',
+            location: altResponse.nearest_area?.[0]?.areaName?.[0]?.value || 'Tu ubicación',
+            weatherCode: -1
+          };
+          console.log('✅ Usando API alternativa exitosamente');
+          this.weatherDataSubject.next(altWeatherData);
+          this.errorSubject.next(null);
+          return; // ✅ Éxito con wttr.in
+        } else {
+          console.warn('Respuesta inválida de wttr.in:', altResponse);
         }
-      } else {
-        console.warn('No se pudo obtener la posición para el respaldo');
+      } catch (altError) {
+        console.warn('❌ API alternativa (wttr.in) también falló:', altError);
       }
+    } else {
+      console.warn('No se pudo obtener la posición para el respaldo');
+    }
 
-      // Fallback final
-      const fallbackData: WeatherData = {
+    // ❌ FALLBACK FINAL: Si todo falló
+    console.error('Todas las APIs de clima fallaron, usando datos de fallback');
+    const fallbackData: WeatherData = {
+      temperature: 999,
+      feelsLike: 999,
+      description: 'Servicio temporalmente no disponible',
+      location: 'Tu ubicación',
+      weatherCode: -1
+    };
+    this.weatherDataSubject.next(fallbackData);
+    this.errorSubject.next(null);
+  }
         temperature: 999,
         feelsLike: 999,
         description: 'Servicio temporalmente no disponible',
@@ -127,54 +141,36 @@ export class WeatherService {
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,weather_code&timezone=auto`;
     const geocodingUrl = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&language=es&format=json`;
 
+    // Obtener datos del clima
+    const weatherResponse = await this.http.get<OpenMeteoResponse>(weatherUrl).toPromise();
+
+    // Obtener nombre de ubicación (con fallback si falla)
+    let location = 'Tu ubicación';
     try {
-      const weatherResponse = await this.http.get<OpenMeteoResponse>(weatherUrl).toPromise();
-
-      let location = 'Tu ubicación';
-      try {
-        const geoResponse = await this.http.get<any>(geocodingUrl).toPromise();
-        if (geoResponse && geoResponse.results && geoResponse.results.length > 0) {
-          const place = geoResponse.results[0];
-          if (place.name) {
-            location = place.admin1 ? `${place.name}, ${place.admin1}` : `${place.name}, ${place.country}`;
-          } else {
-            console.warn('Respuesta de geocoding sin campo name:', place);
-            location = place.country || 'Ubicación desconocida';
-          }
-        } else {
-          console.warn('No se encontraron resultados de geocoding para las coordenadas');
+      const geoResponse = await this.http.get<any>(geocodingUrl).toPromise();
+      if (geoResponse && geoResponse.results && geoResponse.results.length > 0) {
+        const place = geoResponse.results[0];
+        if (place.name) {
+          location = place.admin1 ? `${place.name}, ${place.admin1}` : `${place.name}, ${place.country}`;
         }
-      } catch (geoError) {
-        console.warn('No se pudo obtener nombre de ubicación:', geoError);
-        // Mantener 'Tu ubicación' como fallback
       }
-
-      if (!weatherResponse || !weatherResponse.current) {
-        throw new Error('Respuesta inválida de la API del clima');
-      }
-
-      const weatherData: WeatherData = {
-        temperature: Math.round(weatherResponse.current.temperature_2m) || 999,
-        feelsLike: Math.round(weatherResponse.current.apparent_temperature) || 999,
-        description: this.getWeatherDescription(weatherResponse.current.weather_code),
-        location: location,
-        weatherCode: weatherResponse.current.weather_code
-      };
-
-      return weatherData;
-    } catch (error) {
-      console.error('Error obteniendo datos del clima:', error);
-
-      const fallbackData: WeatherData = {
-        temperature: 999,
-        feelsLike: 999,
-        description: 'No disponible',
-        location: 'Tu ubicación',
-        weatherCode: -1
-      };
-
-      return fallbackData;
+    } catch (geoError) {
+      // Geocoding es opcional, mantener 'Tu ubicación'
     }
+
+    if (!weatherResponse || !weatherResponse.current) {
+      throw new Error('Respuesta inválida de Open-Meteo');
+    }
+
+    const weatherData: WeatherData = {
+      temperature: Math.round(weatherResponse.current.temperature_2m) || 999,
+      feelsLike: Math.round(weatherResponse.current.apparent_temperature) || 999,
+      description: this.getWeatherDescription(weatherResponse.current.weather_code),
+      location: location,
+      weatherCode: weatherResponse.current.weather_code
+    };
+
+    return weatherData;
   }
 
   private getWeatherDescription(code: number): string {
